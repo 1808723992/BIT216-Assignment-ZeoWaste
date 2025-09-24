@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZeoWaste – Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-100">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    function Login() {
+      const [email, setEmail] = React.useState("");
+      const [pwd, setPwd] = React.useState("");
+      const [msg, setMsg] = React.useState("");
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        if (email === "demo@school.edu" && pwd === "123456") {
+          setMsg("✅ Login success! Welcome " + email);
+        } else {
+          setMsg("❌ Invalid email or password");
+        }
+      };
+
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
+            <h1 className="text-2xl font-semibold mb-4">Login</h1>
+            <form onSubmit={handleLogin} className="space-y-3">
+              <input type="email" placeholder="Email" value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border w-full px-3 py-2 rounded-lg" />
+              <input type="password" placeholder="Password" value={pwd}
+                onChange={(e) => setPwd(e.target.value)}
+                className="border w-full px-3 py-2 rounded-lg" />
+              <button className="w-full bg-neutral-900 text-white py-2 rounded-lg">Login</button>
+            </form>
+            {msg && <p className="mt-4 text-center text-sm">{msg}</p>}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Login />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZeoWaste – Food Inventory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-100">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const uid = () => Math.random().toString(36).slice(2, 10);
+
+    function Inventory() {
+      const [items, setItems] = React.useState([]);
+      const [f, setF] = React.useState({ name: "", qty: "", category: "" });
+
+      const addItem = (e) => {
+        e.preventDefault();
+        if (!f.name || !f.qty || !f.category) return alert("Please complete all fields");
+        setItems([...items, { id: uid(), ...f }]);
+        setF({ name: "", qty: "", category: "" });
+      };
+
+      const markUsed = (id) => setItems(items.map(i => i.id === id ? { ...i, qty: i.qty - 1 } : i).filter(i => i.qty > 0));
+
+      const delItem = (id) => setItems(items.filter(i => i.id !== id));
+
+      return (
+        <div className="max-w-3xl mx-auto p-6">
+          <h1 className="text-2xl font-semibold mb-4">Manage Food Inventory</h1>
+          <form onSubmit={addItem} className="bg-white p-4 rounded-2xl shadow space-y-3 mb-6">
+            <input placeholder="Item name" value={f.name} onChange={e => setF({ ...f, name: e.target.value })}
+              className="border w-full px-3 py-2 rounded-lg" />
+            <input placeholder="Quantity" value={f.qty} onChange={e => setF({ ...f, qty: e.target.value })}
+              className="border w-full px-3 py-2 rounded-lg" />
+            <input placeholder="Category" value={f.category} onChange={e => setF({ ...f, category: e.target.value })}
+              className="border w-full px-3 py-2 rounded-lg" />
+            <button className="bg-neutral-900 text-white px-4 py-2 rounded-lg">Add Item</button>
+          </form>
+
+          <div className="grid gap-3">
+            {items.map(i => (
+              <div key={i.id} className="bg-white p-4 rounded-xl shadow flex justify-between items-center">
+                <div>
+                  <div className="font-medium">{i.name}</div>
+                  <div className="text-sm text-gray-600">Qty: {i.qty} · {i.category}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => markUsed(i.id)} className="px-3 py-1 bg-blue-600 text-white rounded-lg">Mark Used</button>
+                  <button onClick={() => delItem(i.id)} className="px-3 py-1 bg-red-600 text-white rounded-lg">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Inventory />);
+  </script>
+</body>
+</html>
