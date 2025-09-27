@@ -40,3 +40,78 @@ button {
 button:hover {
   background: #555;
 }
+
+/* =======================
+   GLOBAL STYLES (Eco Green Theme)
+   ======================= */
+
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+:root {
+  /* Theme Colors */
+  --eco-green: #2E7D32;   /* dark eco green */
+  --eco-orange: #F57C00;  /* orange highlight */
+  --eco-yellow: #FBC02D;  /* yellow warning */
+  --eco-light: #FAF9F6;   /* light beige background */
+  --eco-dark: #333333;    /* dark text */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background-color: var(--eco-light);
+  color: var(--eco-dark);
+  line-height: 1.6;
+}
+
+/* Navbar */
+nav {
+  background-color: var(--eco-green);
+  padding: 10px 20px;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+nav ul li a:hover {
+  color: var(--eco-yellow);
+}
+
+/* Buttons */
+button {
+  background-color: var(--eco-green);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: var(--eco-orange);
+}
+
+/* Card layout (for items later) */
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 15px;
+  margin: 10px 0;
+}
