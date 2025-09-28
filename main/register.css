@@ -1,0 +1,108 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+:root {
+  --eco-green: #6abf69;   /* light eco green */
+  --eco-yellow: #f9e97d;  /* light eco yellow */
+  --eco-dark: #333;
+  --eco-light: #fafafa;
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background: var(--eco-light);
+  color: var(--eco-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Logo Section */
+.logo-section {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--eco-green) 20%, var(--eco-yellow) 80%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  transition: transform 0.5s ease;
+}
+
+.logo {
+  width: 90px;
+  height: auto;
+}
+
+h1 {
+  margin-top: 20px;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--eco-dark);
+}
+
+/* Form Section */
+.form-section {
+  margin-top: 30px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.register-form {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.register-form label {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.register-form input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.register-form input:focus {
+  border-color: var(--eco-green);
+  outline: none;
+}
+
+/* Button */
+.register-form button {
+  margin-top: 10px;
+  background: var(--eco-green);
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.register-form button:hover {
+  background: var(--eco-yellow);
+  color: var(--eco-dark);
+}

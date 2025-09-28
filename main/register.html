@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeoWaste Account</title>
+
+  <!-- Link to your CSS file -->
+  <link rel="stylesheet" href="register.css">
+</head>
+<body>
+  <!-- Space for Navbar (to be added later on main branch) -->
+  <header style="height: 60px;"></header>
+
+  <!-- Logo + Animated Circle -->
+  <section class="logo-section">
+    <div class="circle">
+      <img src="zeowaste-logo.png" alt="ZeoWaste Logo" class="logo">
+    </div>
+    <h1>ZeoWaste Account</h1>
+  </section>
+
+  <!-- Registration Form Box -->
+  <section class="form-section">
+    <form class="register-form">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+
+      <label for="confirm">Confirm Password</label>
+      <input type="password" id="confirm" name="confirm" required>
+
+      <label for="household">Household Size (optional)</label>
+      <input type="number" id="household" name="household">
+
+      <button type="submit">Create Account</button>
+    </form>
+  </section>
+
+  <!-- Link to your JS file -->
+  <script src="register.js"></script>
+</body>
+</html>
