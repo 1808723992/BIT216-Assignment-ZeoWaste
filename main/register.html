@@ -4,45 +4,85 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZeoWaste Account</title>
-
-  <!-- Link to your CSS file -->
   <link rel="stylesheet" href="register.css">
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <!-- Space for Navbar (to be added later on main branch) -->
-  <header style="height: 60px;"></header>
-
-  <!-- Logo + Animated Circle -->
-  <section class="logo-section">
-    <div class="circle">
-      <img src="zeowaste-logo.png" alt="ZeoWaste Logo" class="logo">
-    </div>
-    <h1>ZeoWaste Account</h1>
-  </section>
-
-  <!-- Registration Form Box -->
   <section class="form-section">
-    <form class="register-form">
-      <label for="name">Full Name</label>
-      <input type="text" id="name" name="name" required>
+    <div class="register-card">
+      
+<!-- Logo with Animated Dots -->
+<!-- Logo with Dots Circle -->
+<section class="logo-section">
+  <div class="dots-circle">
+    <!-- ZeoWaste Logo -->
+    <img src="zeowaste-logo.png" alt="ZeoWaste Logo" class="center-logo">
+    
+    <!-- Dots (around the logo) -->
+    <div class="dot" style="--i:0"></div>
+    <div class="dot" style="--i:1"></div>
+    <div class="dot" style="--i:2"></div>
+    <div class="dot" style="--i:3"></div>
+    <div class="dot" style="--i:4"></div>
+    <div class="dot" style="--i:5"></div>
+    <div class="dot" style="--i:6"></div>
+    <div class="dot" style="--i:7"></div>
+    <div class="dot" style="--i:8"></div>
+    <div class="dot" style="--i:9"></div>
+    <div class="dot" style="--i:10"></div>
+    <div class="dot" style="--i:11"></div>
+    <div class="dot" style="--i:12"></div>
+    <div class="dot" style="--i:13"></div>
+    <div class="dot" style="--i:14"></div>
+    <div class="dot" style="--i:15"></div>
+  </div>
+</section>
 
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" required>
+      <!-- Title + Subtitle -->
+      <h1>ZeoWaste Account</h1>
+      <p class="subtitle">Create your account to get started</p>
 
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" required>
+      <!-- Form -->
+      <form class="register-form">
+        <div class="form-group">
+          <label for="name"><i class="fa fa-user"></i> Full Name</label>
+          <input type="text" id="name" placeholder="Enter your full name" required>
+        </div>
 
-      <label for="confirm">Confirm Password</label>
-      <input type="password" id="confirm" name="confirm" required>
+        <div class="form-group">
+          <label for="email"><i class="fa fa-envelope"></i> Email</label>
+          <input type="email" id="email" placeholder="Enter your email address" required>
+        </div>
 
-      <label for="household">Household Size (optional)</label>
-      <input type="number" id="household" name="household">
+        <div class="form-group password-group">
+          <label for="password"><i class="fa fa-lock"></i> Password</label>
+          <input type="password" id="password" placeholder="Create a strong password" required>
+          <span class="toggle-password" onclick="togglePassword('password')"><i class="fa fa-eye"></i></span>
+        </div>
 
-      <button type="submit">Create Account</button>
-    </form>
+        <div class="form-group password-group">
+          <label for="confirm"><i class="fa fa-lock"></i> Confirm Password</label>
+          <input type="password" id="confirm" placeholder="Confirm your password" required>
+          <span class="toggle-password" onclick="togglePassword('confirm')"><i class="fa fa-eye"></i></span>
+        </div>
+
+        <div class="form-group">
+          <label for="household"><i class="fa fa-home"></i> Household Size <span class="optional">(optional)</span></label>
+          <input type="number" id="household" placeholder="Number of people in your household">
+        </div>
+
+        <button type="submit">Create Account</button>
+      </form>
+
+      <!-- Footer -->
+      <p class="footer-text">
+        Already have an account? <a href="#">Sign in here</a>
+      </p>
+    </div>
   </section>
 
-  <!-- Link to your JS file -->
   <script src="register.js"></script>
 </body>
 </html>
