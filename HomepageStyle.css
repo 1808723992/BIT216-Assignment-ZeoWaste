@@ -1,3 +1,8 @@
+:root {
+  --eco-green: #34a853;
+  --eco-orange: #ff6600;
+}
+
 /* Navbar */
 .navbar {
   display: flex;
@@ -120,18 +125,49 @@
 }
 
 .feature-card {
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
-  width: 300px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background: #fff;
+  border-radius: 20px;       /* 圆角更大 */
+  padding: 40px 30px;        /* 内边距更宽松 */
+  width: 320px;
+  min-height: 320px;         /* 保证高度一致 */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08); /* 更柔和的阴影 */
   text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.feature-card img {
-  width: 40px;
-  margin-bottom: 20px;
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12); /* 悬停时更亮 */
 }
+
+
+.feature-card img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 20px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #f5f5f5; /* 默认背景，避免黑色太突兀 */
+}
+
+/* Login / Register 图标 */
+.icon-login {
+  background: linear-gradient(135deg, #4a6cf7, #4a90e2); /* 蓝色渐变 */
+  fill: white;
+}
+
+/* Inventory 图标 */
+.icon-inventory {
+  background: linear-gradient(135deg, #34a853, #0f9d58); /* 绿色渐变 */
+  fill: white;
+}
+
+/* Browse 图标 */
+.icon-browse {
+  background: linear-gradient(135deg, #9b51e0, #6a1b9a); /* 紫色渐变 */
+  fill: white;
+}
+
 
 .btn-primary {
   display: inline-block;
@@ -150,53 +186,39 @@
 
 /* Call to Action */
 .cta {
-  background: var(--eco-green);
+  background: linear-gradient(135deg, #34a853, #0f9d58); /* 柔和渐变绿色 */
   color: white;
   text-align: center;
-  padding: 80px 20px;
+  padding: 100px 20px;
+  border-radius: 20px;     /* CTA 像独立卡片一样 */
+  margin: 60px auto;
+  max-width: 1000px;       /* 不要全屏撑开 */
 }
 
 .cta h2 {
-  font-size: 2rem;
-  margin-bottom: 15px;
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  font-weight: 700;
 }
 
-/* Footer */
+
 footer {
-  background: #1a1a1a;
-  color: #ccc;
+  background: #111;    /* 深色但不是死黑 */
+  color: #bbb;
   text-align: center;
-  padding: 40px 20px;
-}
-
-.footer-logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  font-weight: bold;
-  color: white;
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-}
-
-.footer-logo img {
-  width: 28px;
-  height: 28px;
-}
-
-.footer-links {
-  margin-top: 20px;
+  padding: 50px 20px;
 }
 
 .footer-links a {
-  color: #ccc;
-  margin: 0 10px;
+  color: #bbb;
+  margin: 0 15px;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .footer-links a:hover {
-  color: white;
+  color: #fff;
 }
+
 
 
