@@ -56,37 +56,50 @@
     <!-- Food Items -->
     <div class="food-grid">
       <!-- Milk Card -->
-      <div class="food-card">
-        <span class="tag dairy">Dairy</span>
-        <h3>Milk </h3>
-        <p>Qty: 1 bottle</p>
-        <p>Storage: Fridge</p>
-        <p class="expiry">Exp: 9/17/2025 (3d)</p>
-        <button class="btn-primary">View Details</button>
-      </div>
-
-      <!-- Tomato Card -->
-      <div class="food-card">
-        <span class="tag vegetable">Vegetable</span>
-        <h3>Tomato </h3>
-        <p>Qty: 4 pcs</p>
-        <p>Storage: Pantry</p>
-        <p class="expiry">Exp: 9/17/2025 (3d)</p>
-        <button class="btn-primary">View Details</button>
-      </div>
-
-      <!-- Bread Card -->
-      <div class="food-card">
-        <span class="tag bakery">Bakery</span>
-        <h3>Bread </h3>
-        <p>Qty: 2 loaves</p>
-        <p>Storage: Pantry</p>
-        <p class="expiry">Exp: 9/17/2025 (4d)</p>
-        <button class="btn-primary">View Details</button>
-      </div>
+    <div class="food-card">
+     <button class="bookmark-btn">☆</button>
+      <span class="tag dairy">Dairy</span>
+      <h3>Milk 🥛</h3>
+      <p>Qty: 1 bottle</p>
+      <p>Storage: Fridge</p>
+      <p class="expiry">Exp: 9/17/2025 (3d)</p>
+      <button class="btn-primary">View Details</button>
     </div>
+
+<!-- Tomato Card -->
+  <div class="food-card">
+    <button class="bookmark-btn">☆</button>
+    <span class="tag vegetable">Vegetable</span>
+    <h3>Tomato 🍅</h3>
+    <p>Qty: 4 pcs</p>
+    <p>Storage: Pantry</p>
+    <p class="expiry">Exp: 9/17/2025 (3d)</p>
+    <button class="btn-primary">View Details</button>
+  </div>
+
+<!-- Bread Card -->
+  <div class="food-card">
+    <button class="bookmark-btn">☆</button>
+    <span class="tag bakery">Bakery</span>
+   <h3>Bread 🍞</h3>
+    <p>Qty: 2 loaves</p>
+    <p>Storage: Pantry</p>
+    <p class="expiry">Exp: 9/17/2025 (4d)</p>
+    <button class="btn-primary">View Details</button>
+  </div>
+
+  </div>
   </section>
   
   <script src="nav.js"></script>
+  <script>
+    document.addEventListener("click", function(e) {
+     if (e.target.classList.contains("bookmark-btn")) {
+        e.target.classList.toggle("active");
+       e.target.textContent = e.target.classList.contains("active") ? "★" : "☆";
+      }
+    });
+  </script>
+
 </body>
 </html>

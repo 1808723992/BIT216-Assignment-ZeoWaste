@@ -117,3 +117,26 @@ body {
   background: #e65c00;
 }
 
+/* Bookmark 按钮 */
+.bookmark-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #bbb;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.bookmark-btn:hover {
+  color: #ff6600;
+  transform: scale(1.2);
+}
+
+.bookmark-btn.active {
+  color: #ff6600;
+  content: "★"; /* 实心星星 */
+}
+
