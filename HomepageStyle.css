@@ -244,3 +244,127 @@ footer {
 .icon-login { background: linear-gradient(135deg, #4a6cf7, #4a90e2); }
 .icon-inventory { background: linear-gradient(135deg, #34a853, #0f9d58); }
 .icon-browse { background: linear-gradient(135deg, #9b51e0, #6a1b9a); }
+
+/* 顶部导航右侧图标 */
+.nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.nav-icon:hover {
+  opacity: 0.7;
+}
+
+/* 用户头像 + 下拉菜单 */
+.profile-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 45px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 160px;
+  z-index: 10;
+}
+
+.dropdown a {
+  display: block;
+  padding: 10px 15px;
+  text-decoration: none;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.dropdown a:hover {
+  background: #f5f5f5;
+}
+
+/* 鼠标移到头像时展开菜单 */
+.profile-menu:hover .dropdown {
+  display: block;
+}
+
+/* App Launcher (九宫格) */
+.app-launcher {
+  position: relative;
+}
+
+#appLauncherBtn {
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+#appLauncherBtn:hover {
+  opacity: 1;
+}
+
+/* Dropdown Panel */
+.app-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  width: 260px;
+  padding: 15px;
+  z-index: 20;
+}
+
+.app-dropdown h4 {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.app-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  font-size: 0.8rem;
+  color: #444;
+  transition: background 0.2s ease;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.app-item img {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 5px;
+}
+
+.app-item:hover {
+  background: #f5f5f5;
+}
+
