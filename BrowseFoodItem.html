@@ -13,7 +13,7 @@
 </head>
 <body>
 
-  <!-- ✅ 导航栏（动态加载 nav.html） -->
+  <!--  导航栏（动态加载 nav.html） -->
   <div id="nav-placeholder"></div>
   <script>
     fetch("nav.html")
@@ -24,7 +24,7 @@
       .catch(err => console.error("导航加载失败:", err));
   </script>
 
-  <!-- ✅ Browse Food Section -->
+  <!--  Browse Food Section -->
   <section class="browse">
     <h2>Browse Food Items</h2>
 
@@ -55,28 +55,31 @@
 
     <!-- Food Items -->
     <div class="food-grid">
+      <!-- Milk Card -->
       <div class="food-card">
-        <h3>Milk</h3>
+        <span class="tag dairy">Dairy</span>
+        <h3>Milk </h3>
         <p>Qty: 1 bottle</p>
-        <p>Category: Dairy</p>
         <p>Storage: Fridge</p>
         <p class="expiry">Exp: 9/17/2025 (3d)</p>
         <button class="btn-primary">View Details</button>
       </div>
 
+      <!-- Tomato Card -->
       <div class="food-card">
-        <h3>Tomato</h3>
+        <span class="tag vegetable">Vegetable</span>
+        <h3>Tomato </h3>
         <p>Qty: 4 pcs</p>
-        <p>Category: Vegetable</p>
         <p>Storage: Pantry</p>
         <p class="expiry">Exp: 9/17/2025 (3d)</p>
         <button class="btn-primary">View Details</button>
       </div>
 
+      <!-- Bread Card -->
       <div class="food-card">
-        <h3>Bread</h3>
+        <span class="tag bakery">Bakery</span>
+        <h3>Bread </h3>
         <p>Qty: 2 loaves</p>
-        <p>Category: Bakery</p>
         <p>Storage: Pantry</p>
         <p class="expiry">Exp: 9/17/2025 (4d)</p>
         <button class="btn-primary">View Details</button>
