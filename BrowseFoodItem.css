@@ -1,0 +1,87 @@
+/* 整体布局 */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #fafafa;
+  color: #333;
+}
+
+/* Browse Section */
+.browse {
+  padding: 30px 50px;
+}
+
+.browse h2 {
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  color: #222;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 25px;
+  align-items: center;
+}
+
+.filters select,
+.filters input[type="text"] {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.filters label {
+  font-size: 0.9rem;
+}
+
+.btn-clear {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #eee;
+  cursor: pointer;
+}
+.btn-clear:hover {
+  background: #ddd;
+}
+
+/* Food Items Grid */
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.food-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.food-card h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+}
+
+.expiry {
+  color: red;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin: 10px 0;
+}
+
+.btn-primary {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #0f9d58;
+  color: white;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background: #0d7d45;
+}
