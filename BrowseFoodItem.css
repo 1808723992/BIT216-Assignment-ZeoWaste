@@ -69,6 +69,7 @@ body {
 
 /* 食品卡片美化 */
 .food-card {
+  position: relative;   /* ✅ 新增 */
   background: #fff;
   border-radius: 20px;
   padding: 25px;
@@ -117,8 +118,8 @@ body {
   background: #e65c00;
 }
 
-/* Bookmark 按钮 */
-.bookmark-btn {
+/* Bookmark 按钮 - 仅在 food-card 内生效 */
+.food-card .bookmark-btn {
   position: absolute;
   top: 15px;
   right: 15px;
@@ -130,13 +131,13 @@ body {
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.bookmark-btn:hover {
+.food-card .bookmark-btn:hover {
   color: #ff6600;
   transform: scale(1.2);
 }
 
-.bookmark-btn.active {
+.food-card .bookmark-btn.active {
   color: #ff6600;
-  content: "★"; /* 实心星星 */
 }
+
 
