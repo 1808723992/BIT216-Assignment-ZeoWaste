@@ -3,44 +3,54 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 40px;
+  padding: 12px 40px;
   background: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-bottom: 1px solid #eee; /* 更柔和的分隔线，代替阴影 */
 }
 
+/* 左侧 Logo */
 .logo {
   display: flex;
   align-items: center;
   gap: 10px;
   font-weight: bold;
-  color: var(--eco-green);
+  color: #0f9d58; /* 柔和绿色 */
   font-size: 1.2rem;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: #f6fef9; /* 带点淡绿色背景，增加柔和感 */
 }
 
 .logo img {
-  width: 32px;
-  height: 32px;
+  width: 60px;
+  height: 60px;
 }
 
+/* 右侧文字和按钮 */
 .nav-links {
   display: flex;
-  gap: 20px;
+  gap: 15px;
   align-items: center;
+  font-size: 0.9rem;
+  color: #444;
 }
 
+/* Sign In 按钮 */
 .btn-outline {
-  border: 2px solid var(--eco-green);
-  padding: 6px 12px;
-  border-radius: 6px;
-  color: var(--eco-green);
+  border: 1px solid #34a853; /* 更细的边框 */
+  padding: 5px 14px;
+  border-radius: 20px;
+  color: #34a853;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
 }
 
 .btn-outline:hover {
-  background: var(--eco-green);
+  background: #34a853;
   color: #fff;
 }
+
 
 /* Hero Section */
 .hero {
