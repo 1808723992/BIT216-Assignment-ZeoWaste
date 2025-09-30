@@ -38,7 +38,7 @@ body {
 }
 
 .center-logo {
-  width: 80px;   /* adjust size */
+  width: 180px;   /* adjust size */
   height: auto;
   z-index: 2;
 }
