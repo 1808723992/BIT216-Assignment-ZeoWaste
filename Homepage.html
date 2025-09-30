@@ -3,39 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Food Waste App - Home</title>
+  <title>ZeoWaste - Home</title>
   <link rel="stylesheet" href="HomepageStyle.css">
 </head>
 <body>
-  <header class="topbar">
-  <div class="logo">ZeoWaste</div>
-  <div class="nav-right">
-    <a href="login.html">Gmail</a>
-    <a href="browse.html">Image</a>
-    <button class="apps-btn">☰</button>
-    <div class="user-avatar">User</div>
-  </div>
+
+  <!-- Top Navigation -->
+  <header class="navbar">
+    <div class="logo">
+      <img src="logo.png" alt="ZeoWaste Logo">
+      <span>ZeoWaste</span>
+    </div>
+    <div class="nav-links">
+      <span>Welcome back!</span>
+      <a href="login.html" class="btn-outline">Sign In</a>
+    </div>
   </header>
 
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Manage Your Food <span class="highlight">Smarter</span></h1>
+      <p>Take control of your food inventory, discover new recipes, and reduce waste with our comprehensive food management platform.</p>
+    </div>
+  </section>
 
-  <main class="card-container">
-    <div class="card">
-      <h2>Login / Register</h2>
-      <p>Create an account or sign in</p>
-      <button onclick="navigate('login.html')">Open</button>
+  <!-- Features Section -->
+  <section class="features">
+    <h2>Everything you need to manage your food</h2>
+    <p class="subtitle">From tracking inventory to discovering new recipes, our platform has all the tools you need.</p>
+    
+    <div class="feature-cards">
+      <div class="feature-card">
+        <img src="icon-login.png" alt="Login">
+        <h3>Login / Register</h3>
+        <p>Create an account or sign in to access your personalized dashboard.</p>
+        <a href="login.html" class="btn-primary">Get Started</a>
+      </div>
+      <div class="feature-card">
+        <img src="icon-inventory.png" alt="Inventory">
+        <h3>Food Inventory</h3>
+        <p>Track your food items, monitor expiration dates, and get smart recommendations.</p>
+        <a href="inventory.html" class="btn-primary">Manage Inventory</a>
+      </div>
+      <div class="feature-card">
+        <img src="icon-browse.png" alt="Browse">
+        <h3>Browse Food Items</h3>
+        <p>Search and filter through food items, find recipes, and discover new ingredients.</p>
+        <a href="browse.html" class="btn-primary">Explore Foods</a>
+      </div>
     </div>
-    <div class="card">
-      <h2>Food Inventory</h2>
-      <p>Manage your food items</p>
-      <button onclick="navigate('inventory.html')">Open</button>
-    </div>
-    <div class="card">
-      <h2>Browse Food Items</h2>
-      <p>Search and filter available food</p>
-      <button onclick="navigate('browse.html')">Open</button>
-    </div>
-  </main>
+  </section>
 
-  <script src="HomepageJavascript.js"></script>
+  <!-- Call to Action Section -->
+  <section class="cta">
+    <h2>Ready to transform your food management?</h2>
+    <p>Join thousands of households already saving money and reducing waste with ZeoWaste.</p>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-logo">
+      <img src="logo.png" alt="ZeoWaste Logo">
+      <span>ZeoWaste</span>
+    </div>
+    <p>Making food management simple and smart for everyone.</p>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact Us</a>
+      <a href="#">Help Center</a>
+    </div>
+  </footer>
+
 </body>
 </html>
