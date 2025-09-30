@@ -4,18 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZeoWaste - Browse Food</title>
+
+  <!-- 导航栏样式 -->
+  <link rel="stylesheet" href="nav.css">
+
+  <!-- 本页样式 -->
   <link rel="stylesheet" href="BrowseFoodItem.css">
 </head>
 <body>
 
-  <!-- ✅ 导航栏（直接复用 nav.html 或你们团队统一好的导航模块） -->
+  <!-- ✅ 导航栏（动态加载 nav.html） -->
   <div id="nav-placeholder"></div>
   <script>
     fetch("nav.html")
       .then(res => res.text())
       .then(data => {
         document.getElementById("nav-placeholder").innerHTML = data;
-      });
+      })
+      .catch(err => console.error("导航加载失败:", err));
   </script>
 
   <!-- ✅ Browse Food Section -->
