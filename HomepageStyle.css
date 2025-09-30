@@ -222,3 +222,25 @@ footer {
 
 
 
+
+/* Icon Wrapper */
+.icon-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+}
+.icon-wrapper svg {
+  width: 100%;
+  height: 100%;
+}
+.icon-wrapper svg path {
+  fill: white;
+}
+.icon-login { background: linear-gradient(135deg, #4a6cf7, #4a90e2); }
+.icon-inventory { background: linear-gradient(135deg, #34a853, #0f9d58); }
+.icon-browse { background: linear-gradient(135deg, #9b51e0, #6a1b9a); }
