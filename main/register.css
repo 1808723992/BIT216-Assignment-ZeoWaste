@@ -20,44 +20,49 @@ body {
   text-align: center;
 }
 
-/* === Logo with Dots Circle === */
+/* === Logo Glow Effect === */
 .logo-section {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin: 40px 0;
-  position: relative;
 }
 
-.dots-circle {
+.logo-glow {
   position: relative;
-  width: 250px;
-  height: 250px;
-  margin: 0 auto 20px auto;
-  border-radius: 50%;
+  width: 180px;
+  height: 180px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 }
 
 .center-logo {
-  width: 80px;
+  width: 80px;   /* adjust size */
+  height: auto;
   z-index: 2;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
-/* Dots around logo */
-.dot {
+/* Glow background */
+.logo-glow::before {
+  content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 12px;
-  height: 12px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
-  transform: rotate(calc(var(--i) * 22.5deg)) translate(110px);
-  background: hsl(calc(var(--i) * 25), 60%, 55%);
+  background: radial-gradient(circle, #a8e6a3, #f9e97d);
+  filter: blur(40px);
+  opacity: 0.8;
+  z-index: 1;
+  animation: pulse 4s ease-in-out infinite;
 }
+
+/* Subtle pulsing animation */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 0.6; }
+}
+
 
 /* === Title & Subtitle === */
 .register-card h1 {
