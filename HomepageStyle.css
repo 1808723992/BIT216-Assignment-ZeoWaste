@@ -10,20 +10,16 @@
   align-items: center;
   padding: 12px 40px;
   background: #fff;
-  border-bottom: 1px solid #eee; /* 更柔和的分隔线，代替阴影 */
+  border-bottom: 1px solid #eee;
 }
 
-/* 左侧 Logo */
 .logo {
   display: flex;
   align-items: center;
   gap: 10px;
   font-weight: bold;
-  color: #0f9d58; /* 柔和绿色 */
+  color: #0f9d58;
   font-size: 1.2rem;
-  padding: 6px 12px;
-  border-radius: 12px;
-  background: #f6fef9; /* 带点淡绿色背景，增加柔和感 */
 }
 
 .logo img {
@@ -31,7 +27,6 @@
   height: 60px;
 }
 
-/* 右侧文字和按钮 */
 .nav-links {
   display: flex;
   gap: 15px;
@@ -40,27 +35,24 @@
   color: #444;
 }
 
-/* Sign In 按钮 */
 .btn-outline {
-  border: 1px solid #34a853; /* 更细的边框 */
-  padding: 5px 14px;
+  border: 2px solid #34a853;
+  padding: 6px 16px;
   border-radius: 20px;
   color: #34a853;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease-in-out;
 }
-
 .btn-outline:hover {
   background: #34a853;
   color: #fff;
 }
 
-
 /* Hero Section */
 .hero {
   position: relative;
-  background: url('photo-1723810315254-e189f1294bff.jpeg') center/cover no-repeat;
+  background: url('./photo-1723810315254-e189f1294bff.jpeg') center/cover no-repeat;
   color: white;
   text-align: center;
   padding: 120px 20px;
@@ -69,8 +61,6 @@
   justify-content: center;
   align-items: center;
 }
-
-/* 遮罩层 */
 .hero::before {
   content: "";
   position: absolute;
@@ -78,96 +68,70 @@
   background: rgba(0,0,0,0.45);
   z-index: 1;
 }
-
-/* Hero 文字在遮罩上方 */
 .hero-content {
   position: relative;
   z-index: 2;
   max-width: 800px;
 }
-
 .hero h1 {
   font-size: 3rem;
   font-weight: 700;
 }
-
 .highlight {
   color: var(--eco-orange);
 }
-
 .hero p {
   margin-top: 20px;
   font-size: 1.2rem;
 }
-
 
 /* Features */
 .features {
   text-align: center;
   padding: 60px 20px;
 }
-
 .features h2 {
   font-size: 2rem;
   margin-bottom: 10px;
 }
-
 .features .subtitle {
   color: #555;
   margin-bottom: 40px;
 }
-
 .feature-cards {
   display: flex;
   justify-content: center;
   gap: 20px;
   flex-wrap: wrap;
 }
-
 .feature-card {
   background: #fff;
-  border-radius: 20px;       /* 圆角更大 */
-  padding: 40px 30px;        /* 内边距更宽松 */
+  border-radius: 20px;
+  padding: 40px 30px;
   width: 320px;
-  min-height: 320px;         /* 保证高度一致 */
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08); /* 更柔和的阴影 */
+  min-height: 320px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
   text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 .feature-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.12); /* 悬停时更亮 */
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
 }
-
-
-.feature-card img {
+.icon-wrapper {
   width: 60px;
   height: 60px;
-  margin-bottom: 20px;
-  padding: 12px;
   border-radius: 16px;
-  background: #f5f5f5; /* 默认背景，避免黑色太突兀 */
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
 }
-
-/* Login / Register 图标 */
-.icon-login {
-  background: linear-gradient(135deg, #4a6cf7, #4a90e2); /* 蓝色渐变 */
-  fill: white;
-}
-
-/* Inventory 图标 */
-.icon-inventory {
-  background: linear-gradient(135deg, #34a853, #0f9d58); /* 绿色渐变 */
-  fill: white;
-}
-
-/* Browse 图标 */
-.icon-browse {
-  background: linear-gradient(135deg, #9b51e0, #6a1b9a); /* 紫色渐变 */
-  fill: white;
-}
-
+.icon-wrapper svg path { fill: white; }
+.icon-login { background: linear-gradient(135deg, #4a6cf7, #4a90e2); }
+.icon-inventory { background: linear-gradient(135deg, #34a853, #0f9d58); }
+.icon-browse { background: linear-gradient(135deg, #9b51e0, #6a1b9a); }
 
 .btn-primary {
   display: inline-block;
@@ -179,192 +143,39 @@
   text-decoration: none;
   font-weight: 600;
 }
-
 .btn-primary:hover {
   background: #e65c00;
 }
 
-/* Call to Action */
+/* CTA Section */
 .cta {
-  background: linear-gradient(135deg, #34a853, #0f9d58); /* 柔和渐变绿色 */
+  background: linear-gradient(135deg, #34a853, #0f9d58);
   color: white;
   text-align: center;
   padding: 100px 20px;
-  border-radius: 20px;     /* CTA 像独立卡片一样 */
+  border-radius: 20px;
   margin: 60px auto;
-  max-width: 1000px;       /* 不要全屏撑开 */
+  max-width: 1000px;
 }
-
 .cta h2 {
   font-size: 2.2rem;
   margin-bottom: 20px;
   font-weight: 700;
 }
 
-
+/* Footer */
 footer {
-  background: #111;    /* 深色但不是死黑 */
+  background: #111;
   color: #bbb;
   text-align: center;
   padding: 50px 20px;
 }
-
 .footer-links a {
   color: #bbb;
   margin: 0 15px;
   text-decoration: none;
   transition: color 0.2s ease;
 }
-
 .footer-links a:hover {
   color: #fff;
 }
-
-
-
-
-/* Icon Wrapper */
-.icon-wrapper {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  padding: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px auto;
-}
-.icon-wrapper svg {
-  width: 100%;
-  height: 100%;
-}
-.icon-wrapper svg path {
-  fill: white;
-}
-.icon-login { background: linear-gradient(135deg, #4a6cf7, #4a90e2); }
-.icon-inventory { background: linear-gradient(135deg, #34a853, #0f9d58); }
-.icon-browse { background: linear-gradient(135deg, #9b51e0, #6a1b9a); }
-
-/* 顶部导航右侧图标 */
-.nav-icons {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.nav-icon {
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-.nav-icon:hover {
-  opacity: 0.7;
-}
-
-/* 用户头像 + 下拉菜单 */
-.profile-menu {
-  position: relative;
-  display: inline-block;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.dropdown {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 45px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  min-width: 160px;
-  z-index: 10;
-}
-
-.dropdown a {
-  display: block;
-  padding: 10px 15px;
-  text-decoration: none;
-  color: #444;
-  font-size: 0.9rem;
-}
-
-.dropdown a:hover {
-  background: #f5f5f5;
-}
-
-/* 鼠标移到头像时展开菜单 */
-.profile-menu:hover .dropdown {
-  display: block;
-}
-
-/* App Launcher (九宫格) */
-.app-launcher {
-  position: relative;
-}
-
-#appLauncherBtn {
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  opacity: 0.8;
-  transition: opacity 0.2s ease;
-}
-#appLauncherBtn:hover {
-  opacity: 1;
-}
-
-/* Dropdown Panel */
-.app-dropdown {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 40px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-  width: 260px;
-  padding: 15px;
-  z-index: 20;
-}
-
-.app-dropdown h4 {
-  margin: 0 0 10px;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.app-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-}
-
-.app-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  font-size: 0.8rem;
-  color: #444;
-  transition: background 0.2s ease;
-  padding: 10px;
-  border-radius: 10px;
-}
-
-.app-item img {
-  width: 36px;
-  height: 36px;
-  margin-bottom: 5px;
-}
-
-.app-item:hover {
-  background: #f5f5f5;
-}
-

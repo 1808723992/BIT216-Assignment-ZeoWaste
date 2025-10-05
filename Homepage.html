@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZeoWaste - Home</title>
   <link rel="stylesheet" href="HomepageStyle.css">
+  <script src="HomepageJavascript.js" defer></script>
 </head>
 <body>
 
-  <!-- Top Navigation -->
+  <!-- 顶部导航（游客版） -->
   <header class="navbar">
     <div class="logo">
       <img src="zeowaste-logo.png" alt="ZeoWaste Logo">
@@ -20,7 +21,7 @@
     </div>
   </header>
 
-  <!-- Hero Section -->
+  <!-- Hero 区域 -->
   <section class="hero">
     <div class="hero-content">
       <h1>Manage Your Food <span class="highlight">Smarter</span></h1>
@@ -28,52 +29,65 @@
     </div>
   </section>
 
-  <!-- Features Section -->
+  <!-- 功能区 -->
   <section class="features">
     <h2>Everything you need to manage your food</h2>
     <p class="subtitle">From tracking inventory to discovering new recipes, our platform has all the tools you need.</p>
-    
-    
-<div class="feature-cards">
-  <!-- Login / Register -->
-  <div class="feature-card">
-    <div class="icon-wrapper icon-login">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-        <path d="M34 22q-3.3 0-5.65-2.35Q26 17.3 26 14q0-3.3 2.35-5.65Q30.7 6 34 6q3.3 0 5.65 2.35Q42 10.7 42 14q0 3.3-2.35 5.65Q37.3 22 34 22Zm0-3q2.5 0 4.25-1.75T40 13q0-2.5-1.75-4.25T34 7q-2.5 0-4.25 1.75T28 13q0 2.5 1.75 4.25T34 19ZM6 42V34.2q0-1.5.775-2.625T9 30.2..." />
-      </svg>
+
+    <div class="feature-cards">
+      <!-- Login / Register -->
+      <div class="feature-card">
+        <div class="icon-wrapper icon-login">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+            <path d="M34 22q-3.3 0-5.65-2.35Q26 17.3 26 14q0-3.3 2.35-5.65Q30.7 6 34 6q3.3 0 5.65 2.35Q42 10.7 42 14q0 3.3-2.35 5.65Q37.3 22 34 22Z" />
+          </svg>
+        </div>
+        <h3>Login / Register</h3>
+        <p>Create an account or sign in to access your personalized dashboard.</p>
+        <a href="login.html" class="btn-primary">Get Started</a>
+      </div>
+
+      <!-- Food Inventory -->
+      <div class="feature-card">
+        <div class="icon-wrapper icon-inventory">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+            <path d="M9 42q-1.2 0-2.1-.9Q6 40.2 6 39V9q0-1.2.9-2.1Q7.8 6 9 6h30q1.2 0 2.1.9Q42 7.8 42 9v30q0 1.2-.9 2.1-.9.9-2.1.9Z"/>
+          </svg>
+        </div>
+        <h3>Food Inventory</h3>
+        <p>Track your food items, monitor expiration dates, and get smart recommendations.</p>
+        <a href="inventory.html" class="btn-primary">Manage Inventory</a>
+      </div>
+
+      <!-- Browse Food Items -->
+      <div class="feature-card">
+        <div class="icon-wrapper icon-browse">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+            <path d="M20 36q-6.65 0-11.325-4.675Q4 26.65 4 20q0-6.65 4.675-11.325Q13.35 4 20 4q6.65 0 11.325 4.675Q36 13.35 36 20q0 6.65-4.675 11.325Q26.65 36 20 36Z"/>
+          </svg>
+        </div>
+        <h3>Browse Food Items</h3>
+        <p>Search and filter through food items, find recipes, and discover new ingredients.</p>
+        <a href="browse.html" class="btn-primary">Explore Foods</a>
+      </div>
     </div>
-    <h3>Login / Register</h3>
-    <p>Create an account or sign in to access your personalized dashboard.</p>
-    <a href="login.html" class="btn-primary">Get Started</a>
-  </div>
+  </section>
 
-  <!-- Food Inventory -->
-  <div class="feature-card">
-    <div class="icon-wrapper icon-inventory">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-        <path d="M9 42q-1.2 0-2.1-.9Q6 40.2 6 39V9q0-1.2.9-2.1Q7.8 6 9 6h30q1.2 0 2.1.9Q42 7.8 42 9v30q0 1.2-.9 2.1-.9.9-2.1.9Zm0-3h30V9H9v30Zm0 0V9v30Z"/>
-      </svg>
-    </div>
-    <h3>Food Inventory</h3>
-    <p>Track your food items, monitor expiration dates, and get smart recommendations.</p>
-    <a href="inventory.html" class="btn-primary">Manage Inventory</a>
-  </div>
-
-  <!-- Browse Food Items -->
-  <div class="feature-card">
-    <div class="icon-wrapper icon-browse">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-        <path d="M20 36q-6.65 0-11.325-4.675Q4 26.65 4 20q0-6.65 4.675-11.325Q13.35 4 20 4q6.65 0 11.325 4.675Q36 13.35 36 20q0 6.65-4.675 11.325Q26.65 36 20 36Zm0-3q5.45 0 9.225-3.775Q33 25.45 33 20q0-5.45-3.775-9.225Q25.45 7 20 7q-5.45 0-9.225 3.775Q7 14.55 7 20q0 5.45 3.775 9.225Q14.55 33 20 33Zm16.85 13L27.9 37.05l2.1-2.1L39 43.9ZM20 20Z"/>
-      </svg>
-    </div>
-    <h3>Browse Food Items</h3>
-    <p>Search and filter through food items, find recipes, and discover new ingredients.</p>
-    <a href="browse.html" class="btn-primary">Explore Foods</a>
-  </div>
-</div>
-
-</section>
-
-  <!-- Call to Action Section -->
+  <!-- CTA -->
   <section class="cta">
-    <h2>Ready to transform your food managem
+    <h2>Ready to transform your food management?</h2>
+    <p>Join ZeoWaste today and make every meal sustainable.</p>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 ZeoWaste. All Rights Reserved.</p>
+    <div class="footer-links">
+      <a href="#">About Us</a>
+      <a href="#">Contact</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+  </footer>
+
+</body>
+</html>
