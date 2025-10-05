@@ -14,13 +14,20 @@ body {
 .browse h2 {
   text-align: center;
   color: #0f9d58;
-  font-size: 2.2rem;
+  font-size: 3rem;          /* ⬆ 放大标题 */
+  font-weight: 800;         /* ⬆ 更粗 */
+  letter-spacing: 1px;      /* 字间距更自然 */
+  margin-bottom: 8px;
 }
+
 .subtitle {
   text-align: center;
-  color: #666;
+  color: #2e7d32;           /* 柔和绿色，呼应主题 */
+  font-size: 1.2rem;        /* 稍微放大 */
+  font-weight: 500;
   margin-bottom: 35px;
 }
+
 
 /* 过滤栏 */
 .filters {
