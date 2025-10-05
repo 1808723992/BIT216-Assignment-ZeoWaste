@@ -5,7 +5,7 @@ body {
   color: #333;
 }
 
-/* 标题与副标题 */
+/* 主体 */
 .browse {
   padding: 60px 60px;
   max-width: 1200px;
@@ -15,7 +15,6 @@ body {
   text-align: center;
   color: #0f9d58;
   font-size: 2.2rem;
-  margin-bottom: 5px;
 }
 .subtitle {
   text-align: center;
@@ -35,11 +34,8 @@ body {
   padding: 20px 25px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+
+/* 过滤栏输入 */
 .filters input,
 .filters select {
   padding: 10px 14px;
@@ -50,10 +46,6 @@ body {
 .filters input[type="text"] {
   width: 220px;
 }
-.checkbox-group label {
-  font-size: 0.9rem;
-  color: #444;
-}
 .btn-clear {
   background: #eee;
   border: none;
@@ -61,29 +53,26 @@ body {
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.3s;
 }
 .btn-clear:hover {
   background: #ddd;
 }
 
-/* 食物网格 */
+/* 卡片 */
 .food-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 25px;
   margin-top: 40px;
 }
-
-/* 卡片样式 */
 .food-card {
   background: #fff;
   border-radius: 22px;
   padding: 25px;
   text-align: center;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
   position: relative;
+  transition: all 0.3s ease;
 }
 .food-card:hover {
   transform: translateY(-5px);
@@ -94,14 +83,7 @@ body {
   height: 100px;
   margin-bottom: 15px;
 }
-.food-card h3 {
-  margin-bottom: 8px;
-  color: #0f9d58;
-}
-.food-card p {
-  margin: 5px 0;
-  color: #555;
-}
+.food-card h3 { color: #0f9d58; }
 
 /* 收藏按钮 */
 .bookmark-btn {
@@ -113,30 +95,12 @@ body {
   font-size: 1.6rem;
   cursor: pointer;
   color: #bbb;
-  transition: 0.3s;
 }
-.bookmark-btn:hover {
-  color: #ff6600;
-  transform: scale(1.1);
-}
-.bookmark-btn.active {
-  color: #ff6600;
-}
+.bookmark-btn.active, .bookmark-btn:hover { color: #ff6600; }
 
 /* 到期条 */
-.expiry-bar {
-  background: #eee;
-  border-radius: 6px;
-  height: 6px;
-  width: 100%;
-  margin: 10px 0;
-  overflow: hidden;
-}
-.expiry-bar span {
-  display: block;
-  height: 100%;
-  background: #34a853;
-}
+.expiry-bar { background: #eee; border-radius: 6px; height: 6px; margin: 10px 0; }
+.expiry-bar span { display: block; height: 100%; background: #34a853; }
 
 /* 主按钮 */
 .btn-primary {
@@ -148,19 +112,65 @@ body {
   padding: 10px 18px;
   cursor: pointer;
   font-weight: 600;
-  transition: 0.3s;
 }
-.btn-primary:hover {
-  background: #e65c00;
+.btn-primary:hover { background: #e65c00; }
+
+/* ========== 模糊玻璃弹窗 ========== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(220,255,230,0.25));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
 }
 
-/* 响应式 */
-@media (max-width: 768px) {
-  .filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .filters input[type="text"] {
-    width: 100%;
-  }
+.modal-content {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  position: relative;
+  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(6px);
 }
+
+.close-btn {
+  position: absolute;
+  top: 15px; right: 20px;
+  font-size: 1.5rem; cursor: pointer; color: #777;
+  transition: 0.3s;
+}
+.close-btn:hover { color: #000; transform: scale(1.15); }
+
+.expiry-tag {
+  display: inline-block;
+  background: #fff5cc;
+  color: #8a6d00;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.modal-buttons { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.btn-modal {
+  border: none; color: white; font-weight: 600; padding: 12px 20px;
+  border-radius: 12px; cursor: pointer; font-size: 1rem;
+}
+.btn-modal.used { background: #1e2a38; }
+.btn-modal.meal { background: #1976d2; }
+.btn-modal.donate { background: #ff6600; }
+
+.modal-details {
+  display: flex; justify-content: space-around; text-align: center; color: #333;
+}
+.modal-details strong { color: #0f9d58; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }

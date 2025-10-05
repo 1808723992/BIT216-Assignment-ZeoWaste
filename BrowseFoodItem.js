@@ -15,4 +15,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.getElementById("searchBox").value = "";
   });
+
+  // 弹窗控制
+  const modal = document.getElementById("foodModal");
+  const closeModalBtn = document.getElementById("closeModal");
+  const viewButtons = document.querySelectorAll(".btn-primary");
+
+  viewButtons.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const card = e.target.closest(".food-card");
+      const title = card.querySelector("h3").textContent;
+      const qty = card.querySelector("p:nth-of-type(1)").textContent.replace("Qty: ", "");
+      const storage = card.querySelector("p:nth-of-type(2)").textContent.replace("Storage: ", "");
+      const exp = card.querySelector(".expiry").textContent;
+      const category = card.dataset.category;
+
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalCategory").textContent = category;
+      document.getElementById("modalStorageType").textContent = storage;
+      document.getElementById("modalExpiry").textContent = exp;
+      document.getElementById("modalQty").textContent = qty;
+      document.getElementById("modalStorage").textContent = storage;
+
+      modal.style.display = "flex";
+    });
+  });
+
+  closeModalBtn.addEventListener("click", () => modal.style.display = "none");
+  window.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
 });
