@@ -1,105 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ZeoWaste - Browse Food</title>
-
-  <!-- 导航栏样式 -->
-  <link rel="stylesheet" href="nav.css">
-
-  <!-- 本页样式 -->
-  <link rel="stylesheet" href="BrowseFoodItem.css">
+  <link rel="stylesheet" href="nav.css" />
+  <link rel="stylesheet" href="BrowseFoodItem.css" />
 </head>
 <body>
-
-  <!--  导航栏（动态加载 nav.html） -->
+  <!-- 导航栏加载 -->
   <div id="nav-placeholder"></div>
   <script>
     fetch("nav.html")
       .then(res => res.text())
-      .then(data => {
-        document.getElementById("nav-placeholder").innerHTML = data;
-      })
+      .then(data => (document.getElementById("nav-placeholder").innerHTML = data))
       .catch(err => console.error("导航加载失败:", err));
   </script>
 
-  <!--  Browse Food Section -->
+  <!-- 页面主内容 -->
   <section class="browse">
-    <h2>Browse Food Items</h2>
+    <h2>🍎 Browse Food Items</h2>
+    <p class="subtitle">Discover your saved items, donations, and more.</p>
 
-    <!-- Filter Bar -->
+    <!-- 过滤栏 -->
     <div class="filters">
-      <select>
-        <option>All Categories</option>
-        <option>Dairy</option>
-        <option>Vegetable</option>
-        <option>Bakery</option>
-      </select>
-      <select>
-        <option>All Storage</option>
-        <option>Fridge</option>
-        <option>Freezer</option>
-        <option>Pantry</option>
-      </select>
-      <label><input type="checkbox" checked> In Stock</label>
-      <label><input type="checkbox"> Donation</label>
-      <input type="text" placeholder="Search...">
-      <select>
-        <option>Expiry (soonest)</option>
-        <option>Expiry (latest)</option>
-      </select>
-      <label><input type="checkbox"> Only Bookmarked</label>
-      <button class="btn-clear">Clear All</button>
+      <div class="filter-group">
+        <input type="text" id="searchBox" placeholder="🔍 Search food items..." />
+      </div>
+
+      <div class="filter-group">
+        <select id="categorySelect">
+          <option>All Categories</option>
+          <option>Dairy</option>
+          <option>Vegetable</option>
+          <option>Bakery</option>
+        </select>
+
+        <select id="storageSelect">
+          <option>All Storage</option>
+          <option>Fridge</option>
+          <option>Freezer</option>
+          <option>Pantry</option>
+        </select>
+      </div>
+
+      <div class="filter-group checkbox-group">
+        <label><input type="checkbox" id="inStock" checked /> In Stock</label>
+        <label><input type="checkbox" id="donation" /> Donation</label>
+        <label><input type="checkbox" id="bookmarked" /> Only Bookmarked</label>
+      </div>
+
+      <button class="btn-clear" id="clearBtn">Clear All</button>
     </div>
 
-    <!-- Food Items -->
+    <!-- 食物卡片区域 -->
     <div class="food-grid">
-      <!-- Milk Card -->
-    <div class="food-card">
-     <button class="bookmark-btn">☆</button>
-      <span class="tag dairy">Dairy</span>
-      <h3>Milk </h3>
-      <p>Qty: 1 bottle</p>
-      <p>Storage: Fridge</p>
-      <p class="expiry">Exp: 9/17/2025 (3d)</p>
-      <button class="btn-primary">View Details</button>
+      <div class="food-card" data-category="Dairy">
+        <button class="bookmark-btn">☆</button>
+        <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Milk" />
+        <h3>Milk</h3>
+        <p>Qty: 1 bottle</p>
+        <p>Storage: Fridge</p>
+        <div class="expiry-bar">
+          <span style="width: 80%;"></span>
+        </div>
+        <p class="expiry">Exp: 9/17/2025 (3d)</p>
+        <button class="btn-primary">View Details</button>
+      </div>
+
+      <div class="food-card" data-category="Vegetable">
+        <button class="bookmark-btn">☆</button>
+        <img src="https://cdn-icons-png.flaticon.com/512/766/766050.png" alt="Tomato" />
+        <h3>Tomato</h3>
+        <p>Qty: 4 pcs</p>
+        <p>Storage: Pantry</p>
+        <div class="expiry-bar">
+          <span style="width: 60%;"></span>
+        </div>
+        <p class="expiry">Exp: 9/18/2025 (4d)</p>
+        <button class="btn-primary">View Details</button>
+      </div>
+
+      <div class="food-card" data-category="Bakery">
+        <button class="bookmark-btn">☆</button>
+        <img src="https://cdn-icons-png.flaticon.com/512/1046/1046751.png" alt="Bread" />
+        <h3>Bread</h3>
+        <p>Qty: 2 loaves</p>
+        <p>Storage: Pantry</p>
+        <div class="expiry-bar">
+          <span style="width: 30%; background: #e53935;"></span>
+        </div>
+        <p class="expiry">Exp: 9/15/2025 (1d)</p>
+        <button class="btn-primary">View Details</button>
+      </div>
     </div>
-
-<!-- Tomato Card -->
-  <div class="food-card">
-    <button class="bookmark-btn">☆</button>
-    <span class="tag vegetable">Vegetable</span>
-    <h3>Tomato </h3>
-    <p>Qty: 4 pcs</p>
-    <p>Storage: Pantry</p>
-    <p class="expiry">Exp: 9/17/2025 (3d)</p>
-    <button class="btn-primary">View Details</button>
-  </div>
-
-<!-- Bread Card -->
-  <div class="food-card">
-    <button class="bookmark-btn">☆</button>
-    <span class="tag bakery">Bakery</span>
-   <h3>Bread </h3>
-    <p>Qty: 2 loaves</p>
-    <p>Storage: Pantry</p>
-    <p class="expiry">Exp: 9/17/2025 (4d)</p>
-    <button class="btn-primary">View Details</button>
-  </div>
-
-  </div>
   </section>
-  
-  <script src="nav.js"></script>
-  <script>
-    document.addEventListener("click", function(e) {
-     if (e.target.classList.contains("bookmark-btn")) {
-        e.target.classList.toggle("active");
-       e.target.textContent = e.target.classList.contains("active") ? "★" : "☆";
-      }
-    });
-  </script>
 
+  <script src="BrowseFoodItem.js"></script>
 </body>
 </html>
