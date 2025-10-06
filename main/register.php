@@ -1,40 +1,85 @@
 <?php
-include 'connect.php'; // connect to the database
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+include 'connect.php';
+require 'phpmailer/Exception.php';
+require 'phpmailer/PHPMailer.php';
+require 'phpmailer/SMTP.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get form data
     $full_name = $_POST['full_name'];
     $email = $_POST['email'];
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
     $household_size = isset($_POST['household_size']) ? $_POST['household_size'] : NULL;
 
-    // Check if passwords match
+    // 🧱 Check password match
     if ($password !== $confirm_password) {
-        echo "<script>alert('Passwords do not match.'); window.history.back();</script>";
+        echo "<script>alert('Passwords do not match!'); window.history.back();</script>";
         exit();
     }
 
-    // Hash password
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-    // Check if email already exists
+    // 🧱 Check duplicate email
     $check = $conn->prepare("SELECT * FROM users WHERE email = ?");
     $check->bind_param("s", $email);
     $check->execute();
     $result = $check->get_result();
 
     if ($result->num_rows > 0) {
-        echo "<script>alert('Email already registered. Try logging in.'); window.history.back();</script>";
+        echo "<script>alert('Email already registered. Please login.'); window.history.back();</script>";
         exit();
     }
 
-    // Insert new user
-    $stmt = $conn->prepare("INSERT INTO users (full_name, email, password, household_size) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("sssi", $full_name, $email, $hashed_password, $household_size);
+    // 🧱 Hash password
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+    // 🧱 Generate OTP
+    $otp = rand(100000, 999999);
+    $otp_expiry = date("Y-m-d H:i:s", strtotime("+5 minutes"));
+
+    // 🧱 Insert new user with OTP
+    $stmt = $conn->prepare("INSERT INTO users (full_name, email, password, household_size, otp_code, otp_expiry)
+                            VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssiss", $full_name, $email, $hashed_password, $household_size, $otp, $otp_expiry);
 
     if ($stmt->execute()) {
-        echo "<script>alert('Account created successfully!'); window.location.href='sign_in.html';</script>";
+        // ✅ Send OTP email using PHPMailer
+        $mail = new PHPMailer(true);
+        $mail->SMTPDebug = 2; // or 3 for more detail
+        $mail->Debugoutput = 'html';
+
+        try {
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'anthonykhoo75@gmail.com';   // replace
+            $mail->Password   = 'pudvucxlrbqjeurj';      // replace
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+
+            $mail->setFrom('anthonykhoo75@gmail.com', 'ZeoWaste');
+            $mail->addAddress($email);
+
+            $mail->isHTML(true);
+            $mail->Subject = 'ZeoWaste Email Verification';
+            $mail->Body    = "
+                <h3>Welcome to ZeoWaste, $full_name!</h3>
+                <p>Your 6-digit OTP code is:</p>
+                <h2>$otp</h2>
+                <p>This code will expire in 5 minutes.</p>";
+
+            $mail->send();
+
+            echo "<script>alert('Account created! Please check your email for the OTP.'); 
+                  window.location.href='otp_verification.php?email=$email';</script>";
+        } catch (Exception $e) {
+            echo "<script>alert('Account created but OTP email failed: {$mail->ErrorInfo}'); 
+                  window.location.href='otp_verification.php?email=$email';</script>";
+        }
     } else {
         echo "<script>alert('Error creating account. Please try again.'); window.history.back();</script>";
     }
