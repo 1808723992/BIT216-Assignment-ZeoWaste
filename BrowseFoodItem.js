@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const title = card.querySelector("h3").textContent;
       const qty = card.querySelector("p:nth-of-type(1)").textContent.replace("Qty: ", "");
       const storage = card.querySelector("p:nth-of-type(2)").textContent.replace("Storage: ", "");
-      const exp = card.querySelector(".expiry").textContent;
+      const exp = card.querySelector(".expiry-tag").textContent;
       const category = card.dataset.category;
 
       document.getElementById("modalTitle").textContent = title;
