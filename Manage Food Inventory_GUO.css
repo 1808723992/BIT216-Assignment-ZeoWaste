@@ -1,0 +1,182 @@
+/* ===== Color System (GivingGreen-inspired) ===== */
+:root{
+  --gg-primary:#3FA778;         /* main green */
+  --gg-primary-dark:#2E6F40;    /* deep green */
+  --gg-secondary:#6AC59C;       /* light green */
+  --gg-bg:#F5F7F6;              /* neutral background */
+  --gg-card:#FFFFFF;            /* card bg */
+  --gg-accent:#88D9C0;          /* accent light */
+  --gg-danger:#E74C3C;          /* delete */
+  --gg-warn:#F39C12;            /* warning (donation/near expiry) */
+  --gg-text:#2C3E50;            /* dark text */
+  --gg-muted:#7F8C8D;           /* muted */
+  --gg-border:#E0E6E3;          /* border */
+  --shadow:0 6px 20px rgba(0,0,0,0.08);
+}
+
+/* ===== Base ===== */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: Inter, Arial, sans-serif;
+  color:var(--gg-text);
+  background:linear-gradient(180deg,#f7fbf9 0%, #eef7f3 100%);
+  padding:24px;
+}
+h1,h2,h3{margin:0 0 12px 0}
+h1{
+  text-align:center;
+  font-weight:800;
+  letter-spacing:0.2px;
+  color:var(--gg-primary-dark);
+}
+header{margin-bottom:12px}
+
+/* ===== Sections & Cards ===== */
+section, .modal-content{
+  background:var(--gg-card);
+  border:1px solid var(--gg-border);
+  border-radius:16px;
+  padding:18px;
+  margin:16px auto;
+  max-width:1100px;
+  box-shadow:var(--shadow);
+}
+
+/* ===== Form Controls ===== */
+label{display:block; font-weight:600; margin:8px 0 6px}
+input, select, textarea, button{
+  font:inherit;
+}
+input[type="text"],input[type="number"],input[type="date"],select,textarea{
+  width:100%;
+  padding:10px 12px;
+  border:1px solid var(--gg-border);
+  border-radius:10px;
+  background:#fff;
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--gg-primary);
+  box-shadow:0 0 0 3px rgba(63,167,120,0.15);
+}
+textarea{min-height:72px; resize:vertical}
+.form-section form{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.form-section form label, .form-section form input, .form-section form select, .form-section form textarea{grid-column:span 1}
+.form-section form textarea{grid-column:span 2}
+#addBtn{grid-column:span 1}
+#scanBtn{grid-column:span 1}
+
+/* ===== Buttons ===== */
+button{
+  padding:10px 16px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  transition:transform .05s ease, background-color .2s ease, opacity .2s;
+  color:#fff;
+  background:var(--gg-primary);
+}
+button:hover{background:var(--gg-primary-dark)}
+button:active{transform:scale(0.98)}
+button.secondary{background:var(--gg-secondary); color:#0f3b2a}
+button.warn{background:var(--gg-warn)}
+button.danger{background:var(--gg-danger)}
+button.ghost{
+  background:transparent; color:var(--gg-text);
+  border:1px solid var(--gg-border);
+}
+
+/* ===== Filters ===== */
+.filter-section .filters{
+  display:flex; flex-wrap:wrap; gap:10px;
+}
+.filter-section input[type="text"], .filter-section select{min-width:180px}
+#clearFilters{background:#fff; color:var(--gg-text); border:1px solid var(--gg-border)}
+#clearFilters:hover{background:#f9fbfa}
+
+/* ===== Table ===== */
+.inventory-section table{
+  width:100%;
+  border-collapse:collapse;
+  border-radius:12px;
+  overflow:hidden;
+}
+.inventory-section thead{background:var(--gg-primary); color:#fff}
+.inventory-section th, .inventory-section td{
+  padding:12px 10px;
+  border-bottom:1px solid var(--gg-border);
+  text-align:left;
+  vertical-align:middle;
+}
+.inventory-section tbody tr:hover{background:#f8fcfa}
+
+/* Status Pills */
+.pill{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.2px;
+}
+.pill.near{background:rgba(243,156,18,.15); color:#8a5a07; border:1px solid rgba(243,156,18,.35)}
+.pill.expired{background:rgba(231,76,60,.12); color:#8a1a10; border:1px solid rgba(231,76,60,.35)}
+.pill.active{background:rgba(63,167,120,.14); color:#1d5b40; border:1px solid rgba(63,167,120,.35)}
+.pill.donated{background:#eafaf3; color:#1e6d4a; border:1px solid #c1ecd9}
+
+/* Action buttons in table */
+.row-actions{display:flex; gap:6px; flex-wrap:wrap}
+.row-actions button{padding:6px 10px; font-size:13px; border-radius:8px}
+.row-actions .edit{background:var(--gg-secondary); color:#0f3b2a}
+.row-actions .use{background:var(--gg-primary)}
+.row-actions .donate{background:var(--gg-warn)}
+.row-actions .delete{background:var(--gg-danger)}
+
+/* ===== Batch Actions ===== */
+.batch-section .batch-buttons{display:flex; gap:10px; flex-wrap:wrap}
+
+/* ===== Notification Toast ===== */
+.notification{
+  position:fixed; left:50%; top:20px; transform:translateX(-50%);
+  background:var(--gg-primary-dark); color:#fff; padding:12px 16px;
+  border-radius:12px; box-shadow:var(--shadow); z-index:9999;
+  min-width:280px; text-align:center;
+}
+.notification.error{background:var(--gg-danger)}
+.notification.warn{background:var(--gg-warn)}
+.hidden{display:none !important}
+
+/* ===== Modals ===== */
+.modal{
+  position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(2px);
+  background:rgba(0,0,0,.25);
+  z-index:1000;
+}
+.modal-content{
+  width: min(640px, 94vw);
+}
+.modal-actions{
+  display:flex; gap:8px; justify-content:flex-end; margin-top:12px;
+}
+
+/* ===== Utilities ===== */
+.helper{
+  color:var(--gg-muted); font-size:13px; margin-top:4px;
+}
+.error-text{color:var(--gg-danger); font-size:13px; margin-top:4px}
+mark{
+  background: #fff8b7;
+  padding:0 2px; border-radius:3px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 780px){
+  .form-section form{grid-template-columns:1fr}
+  .form-section form textarea{grid-column:span 1}
+  .filter-section .filters{flex-direction:column; align-items:stretch}
+  .row-actions{gap:8px}
+}
