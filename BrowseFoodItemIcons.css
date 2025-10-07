@@ -1,0 +1,39 @@
+/* ============ ZeoWaste: BrowseFoodItemIcons.css ============ */
+/* 用于纯CSS + Google Material Icons 图标版本 */
+
+.food-icon {
+  font-family: "Material Symbols Outlined";
+  font-size: 40px;
+  color: #0f9d58;
+  background: #e8f5e9;
+  border-radius: 50%;
+  width: 65px;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px auto;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.food-card:hover .food-icon {
+  transform: scale(1.08);
+}
+
+/* 各分类图标（Google Material Symbols名称） */
+.food-icon.dairy::before {
+  content: "local_drink";
+}
+
+.food-icon.vegetable::before {
+  content: "nutrition";
+}
+
+.food-icon.bakery::before {
+  content: "bakery_dining";
+}
+
+.food-icon.grains::before {
+  content: "inventory_2";
+}

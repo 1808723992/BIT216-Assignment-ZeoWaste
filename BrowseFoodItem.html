@@ -6,6 +6,10 @@
   <title>ZeoWaste - Browse Food</title>
   <link rel="stylesheet" href="nav.css" />
   <link rel="stylesheet" href="BrowseFoodItem.css" />
+  <link rel="stylesheet" href="BrowseFoodItemIcons.css" /> <!-- ✅ 新增图标样式文件 -->
+
+  <!-- Google Material Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 <body>
   <!-- 导航栏加载 -->
@@ -19,7 +23,7 @@
 
   <!-- 页面主内容 -->
   <section class="browse">
-    <h2> Browse Food Items</h2>
+    <h2>Browse Food Items</h2>
     <p class="subtitle">Manage your food inventory efficiently</p>
 
     <!-- 过滤栏 -->
@@ -56,13 +60,11 @@
       <button class="btn-clear" id="clearBtn">Clear All</button>
     </div>
 
-    <!-- 食物卡片区域 -->
+    <!-- 食物卡片 -->
     <div class="food-grid">
-
-      <!-- Dairy -->
       <div class="food-card" data-category="Dairy">
         <button class="bookmark-btn">☆</button>
-        <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Milk" />
+        <div class="food-icon dairy"></div>
         <p class="category">Dairy</p>
         <h3>Milk</h3>
         <p>Qty: 1 bottle</p>
@@ -72,10 +74,9 @@
         <button class="btn-primary">View Details</button>
       </div>
 
-      <!-- Vegetable -->
       <div class="food-card" data-category="Vegetable">
         <button class="bookmark-btn active">★</button>
-        <img src="https://cdn-icons-png.flaticon.com/512/415/415733.png" alt="Tomato" />
+        <div class="food-icon vegetable"></div>
         <p class="category">Vegetable</p>
         <h3>Tomato</h3>
         <p>Qty: 4 pcs</p>
@@ -85,86 +86,30 @@
         <button class="btn-primary">View Details</button>
       </div>
 
-      <!-- Bakery -->
       <div class="food-card" data-category="Bakery">
         <button class="bookmark-btn">☆</button>
-        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Bread" />
+        <div class="food-icon bakery"></div>
         <p class="category">Bakery</p>
         <h3>Bread</h3>
         <p>Qty: 2 loaves</p>
         <p>Storage: Pantry</p>
         <p>Exp: 9/17/2025</p>
-        <span class="expiry-tag" style="background:#ffe0b2; color:#b36b00;">Expires Soon</span>
-        <span class="expiry-tag" style="background:#e0e7ff; color:#3f51b5;">Donation</span>
+        <span class="expiry-tag soon">Expires Soon</span>
+        <span class="expiry-tag donation">Donation</span>
         <button class="btn-primary">View Details</button>
       </div>
 
-      <!-- Dairy - Fresh -->
-      <div class="food-card" data-category="Dairy">
-        <button class="bookmark-btn active">★</button>
-        <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Greek Yogurt" />
-        <p class="category">Dairy</p>
-        <h3>Greek Yogurt</h3>
-        <p>Qty: 3 containers</p>
-        <p>Storage: Fridge</p>
-        <p>Exp: 10/25/2025</p>
-        <span class="expiry-tag" style="background:#e8f5e9; color:#2e7d32;">Fresh</span>
-        <button class="btn-primary">View Details</button>
-      </div>
-
-      <!-- Vegetable - Fresh -->
-      <div class="food-card" data-category="Vegetable">
-        <button class="bookmark-btn">☆</button>
-        <img src="https://cdn-icons-png.flaticon.com/512/415/415733.png" alt="Carrots" />
-        <p class="category">Vegetable</p>
-        <h3>Carrots</h3>
-        <p>Qty: 1 bag</p>
-        <p>Storage: Fridge</p>
-        <p>Exp: 10/15/2025</p>
-        <span class="expiry-tag" style="background:#e8f5e9; color:#2e7d32;">Fresh</span>
-        <button class="btn-primary">View Details</button>
-      </div>
-
-      <!-- Bakery - Donation -->
-      <div class="food-card" data-category="Bakery">
-        <button class="bookmark-btn">☆</button>
-        <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" alt="Bagels" />
-        <p class="category">Bakery</p>
-        <h3>Bagels</h3>
-        <p>Qty: 6 pieces</p>
-        <p>Storage: Pantry</p>
-        <p>Exp: 10/10/2025</p>
-        <span class="expiry-tag" style="background:#e8f5e9; color:#2e7d32;">Fresh</span>
-        <span class="expiry-tag" style="background:#e0e7ff; color:#3f51b5;">Donation</span>
-        <button class="btn-primary">View Details</button>
-      </div>
-
-      <!-- Grains -->
-      <div class="food-card" data-category="Grains">
-        <button class="bookmark-btn">☆</button>
-        <img src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" alt="White Rice" />
-        <p class="category">Grains</p>
-        <h3>White Rice</h3>
-        <p>Qty: 2 kg</p>
-        <p>Storage: Pantry</p>
-        <p>Exp: 12/15/2025</p>
-        <span class="expiry-tag" style="background:#e8f5e9; color:#2e7d32;">Fresh</span>
-        <button class="btn-primary">View Details</button>
-      </div>
-
-      <!-- Grains -->
       <div class="food-card" data-category="Grains">
         <button class="bookmark-btn active">★</button>
-        <img src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" alt="Spaghetti Noodles" />
+        <div class="food-icon grains"></div>
         <p class="category">Grains</p>
         <h3>Spaghetti Noodles</h3>
         <p>Qty: 3 packages</p>
         <p>Storage: Pantry</p>
         <p>Exp: 11/20/2025</p>
-        <span class="expiry-tag" style="background:#e8f5e9; color:#2e7d32;">Fresh</span>
+        <span class="expiry-tag fresh">Fresh</span>
         <button class="btn-primary">View Details</button>
       </div>
-
     </div>
   </section>
 
@@ -172,23 +117,45 @@
   <div class="modal-overlay" id="foodModal">
     <div class="modal-content">
       <span class="close-btn" id="closeModal">&times;</span>
-      <h2 id="modalTitle">Milk</h2>
+
+    <!-- 标题区 -->
+      <h2 id="modalTitle">Tomato</h2>
       <p class="modal-subtitle">
-        <span id="modalCategory">Dairy</span> • <span id="modalStorageType">Fridge</span>
+        <span id="modalCategory">Vegetable</span> • <span id="modalStorageType">Pantry</span>
       </p>
+
+      <!-- 到期标签 -->
       <div class="expiry-tag" id="modalExpiry">Exp: 2025/09/17 (5d)</div>
+
+      <!-- 操作按钮 -->
       <div class="modal-buttons">
-        <button class="btn-modal used"><span>✔</span> Mark as Used</button>
-        <button class="btn-modal meal"><span>📅</span> Plan for Meal</button>
-        <button class="btn-modal donate"><span>❤️</span> Flag for Donation</button>
+        <button class="btn-modal used">
+          <span>✔</span> Mark as Used
+        </button>
+        <button class="btn-modal meal">
+          <span>📅</span> Plan for Meal
+        </button>
+        <button class="btn-modal donate">
+          <span>❤️</span> Flag for Donation
+        </button>
       </div>
+
       <hr />
+
+      <!-- 底部详情 -->
       <div class="modal-details">
-        <div><strong>Quantity</strong><br><span id="modalQty">1 bottle</span></div>
-        <div><strong>Storage</strong><br><span id="modalStorage">Fridge</span></div>
+        <div>
+          <strong>Quantity</strong><br>
+          <span id="modalQty">4 pcs</span>
+        </div>
+        <div>
+          <strong>Storage</strong><br>
+          <span id="modalStorage">Pantry</span>
+        </div>
       </div>
     </div>
   </div>
+
 
   <script src="BrowseFoodItem.js"></script>
 </body>
