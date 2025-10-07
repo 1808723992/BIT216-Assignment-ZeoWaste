@@ -480,28 +480,33 @@ batchDonateBtn.addEventListener('click', ()=>{
   showToast(`Created ${created} donation listing(s).`);
 });
 
-/* ========= Barcode Add (US7 placeholder) ========= */
-scanBtn.addEventListener('click', ()=>{
-  // In real app, integrate camera + barcode SDK; here we simulate
-  const code = prompt('Simulate scan: enter barcode number', '');
-  if(code === null) return;
+scanBtn.addEventListener('click', () => {
+  const barcode = prompt('Enter barcode number:');
+  if (!barcode) return;
 
-  // pretend we know some codes
-  const known = {
-    '9555555555555': { name:'Mackerel Can', category:'Canned', storage:'Pantry' },
-    '9550000123456': { name:'Frozen Dumplings', category:'Frozen', storage:'Freezer' },
-  };
-  const found = known[code];
-  // prefill form
-  if(found){
+  const found = known[barcode];
+  if (found) {
     document.getElementById('itemName').value = found.name;
     document.getElementById('category').value = found.category;
     document.getElementById('storage').value = found.storage;
-    showToast('Barcode recognized. Fields pre-filled.');
-  }else{
-    showToast('Unknown barcode. Please fill fields manually.', 'warn');
+
+    // ✅ 自动填默认数量 = 1
+    document.getElementById('quantity').value = 1;
+
+    // ✅ 自动填默认日期 = 今天 + 3 天
+    const today = new Date();
+    const plus3 = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
+    document.getElementById('expiryDate').value = plus3.toISOString().slice(0, 10);
+
+    showToast('Barcode recognized. Fields pre-filled with defaults.');
+  } else {
+    showToast('Unknown barcode. Please fill manually.');
+    document.getElementById('itemName').value = '';
+    document.getElementById('category').value = '';
+    document.getElementById('storage').value = '';
   }
 });
+
 
 /* ========= Init ========= */
 render();
