@@ -173,18 +173,22 @@ foodForm.addEventListener('submit', (e)=>{
     return;
   }
 
-  // duplicate detection: same name + expiry
-  const dupIndex = inventory.findIndex(i => i.name.toLowerCase() === name.toLowerCase() && i.expiryDate === expiryDate);
+  // ✅ 新的重复检测：只按名字（忽略大小写）判断
+  const dupIndex = inventory.findIndex(i => 
+    i.name.toLowerCase() === name.toLowerCase()
+  );
+
   if(dupIndex >= 0){
-    const ok = confirm('This item already exists. Do you want to update count instead?');
+    const ok = confirm('An item with the same name already exists.\nDo you want to merge the quantity?');
     if(ok){
       inventory[dupIndex].quantity += quantity;
       persistAll(); render();
-      showToast('Quantity updated successfully.');
+      showToast('Quantity merged into existing item.');
       foodForm.reset();
     }
     return;
   }
+
 
   const item = {
     id: uid(),
