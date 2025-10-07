@@ -1,4 +1,6 @@
 <?php
+require_once 'load_env.php';
+loadEnv(__DIR__ . '/.env');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -54,14 +56,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         try {
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
+            $mail->Host       = getenv('MAIL_HOST');
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'anthonykhoo75@gmail.com';   // replace
-            $mail->Password   = 'pudvucxlrbqjeurj';      // replace
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
+            $mail->Username   = getenv('MAIL_USERNAME');
+            $mail->Password   = getenv('MAIL_PASSWORD');
+            $mail->SMTPSecure = getenv('MAIL_ENCRYPTION') === 'ssl'
+                    ? PHPMailer::ENCRYPTION_SMTPS
+                    : PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = getenv('MAIL_PORT');
 
-            $mail->setFrom('anthonykhoo75@gmail.com', 'ZeoWaste');
+            $mail->setFrom(getenv('MAIL_FROM'), getenv('MAIL_NAME'));
+
             $mail->addAddress($email);
 
             $mail->isHTML(true);

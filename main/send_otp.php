@@ -1,4 +1,7 @@
 <?php
+require_once 'load_env.php';
+loadEnv(__DIR__ . '/.env');
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -20,20 +23,24 @@ if (isset($_POST['email'])) {
     $stmt->execute();
 
     // Create PHPMailer instance
-    $mail = new PHPMailer(true);
+        $mail = new PHPMailer(true);
+        $mail->SMTPDebug = 2;
+        $mail->Debugoutput = 'html';
 
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
+        $mail->Host       = getenv('MAIL_HOST');
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'anthonykhoo75@gmail.com'; // 🔹 Replace with your ZeoWaste Gmail
-        $mail->Password   = 'pudv ucxl rbqj eurj';    // 🔹 Replace with 16-char App Password
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
+        $mail->Username   = getenv('MAIL_USERNAME');
+        $mail->Password   = getenv('MAIL_PASSWORD');
+        $mail->SMTPSecure = getenv('MAIL_ENCRYPTION') === 'ssl'
+                    ? PHPMailer::ENCRYPTION_SMTPS
+                    : PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = getenv('MAIL_PORT');
 
-        // Recipients
-        $mail->setFrom('anthonykhoo75@gmail.com', 'ZeoWaste');
+        $mail->setFrom(getenv('MAIL_FROM'), getenv('MAIL_NAME'));
+
         $mail->addAddress($email);
 
         // Email content
