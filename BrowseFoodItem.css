@@ -14,20 +14,19 @@ body {
 .browse h2 {
   text-align: center;
   color: #0f9d58;
-  font-size: 3rem;          /* ⬆ 放大标题 */
-  font-weight: 800;         /* ⬆ 更粗 */
-  letter-spacing: 1px;      /* 字间距更自然 */
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 1px;
   margin-bottom: 8px;
 }
 
 .subtitle {
   text-align: center;
-  color: #2e7d32;           /* 柔和绿色，呼应主题 */
-  font-size: 1.2rem;        /* 稍微放大 */
+  color: #2e7d32;
+  font-size: 1.2rem;
   font-weight: 500;
   margin-bottom: 35px;
 }
-
 
 /* 过滤栏 */
 .filters {
@@ -42,7 +41,6 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
-/* 过滤栏输入 */
 .filters input,
 .filters select {
   padding: 10px 14px;
@@ -65,13 +63,14 @@ body {
   background: #ddd;
 }
 
-/* 卡片 */
+/* 卡片布局 */
 .food-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 25px;
   margin-top: 40px;
 }
+
 .food-card {
   background: #fff;
   border-radius: 22px;
@@ -85,12 +84,33 @@ body {
   transform: translateY(-5px);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
 }
+
+/* 图标样式 */
 .food-card img {
-  width: 100px;
-  height: 100px;
-  margin-bottom: 15px;
+  width: 50px;
+  height: 50px;
+  background: #e8f5e9;
+  padding: 10px;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 10px;
 }
-.food-card h3 { color: #0f9d58; }
+
+/* 分类文字 */
+.food-card .category {
+  color: #388e3c;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+/* 标题 */
+.food-card h3 {
+  color: #0f9d58;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 5px 0 10px 0;
+}
 
 /* 收藏按钮 */
 .bookmark-btn {
@@ -103,16 +123,40 @@ body {
   cursor: pointer;
   color: #bbb;
 }
-.bookmark-btn.active, .bookmark-btn:hover { color: #ff6600; }
+.bookmark-btn.active, .bookmark-btn:hover {
+  color: #ff6600;
+}
 
-/* 到期条 */
-.expiry-bar { background: #eee; border-radius: 6px; height: 6px; margin: 10px 0; }
-.expiry-bar span { display: block; height: 100%; background: #34a853; }
+/* 状态标签 */
+.expiry-tag {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 14px;
+  padding: 4px 10px;
+  margin: 3px 4px;
+  background: #fff5cc;
+  color: #8a6d00;
+}
+
+/* 状态专属色调 */
+.expiry-tag.fresh {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.expiry-tag.soon {
+  background: #ffe0b2;
+  color: #b36b00;
+}
+.expiry-tag.donation {
+  background: #e0e7ff;
+  color: #3f51b5;
+}
 
 /* 主按钮 */
 .btn-primary {
   margin-top: 12px;
-  background: #ff6600;
+  background: #0f9d58;
   color: white;
   border: none;
   border-radius: 8px;
@@ -120,15 +164,19 @@ body {
   cursor: pointer;
   font-weight: 600;
 }
-.btn-primary:hover { background: #e65c00; }
+.btn-primary:hover {
+  background: #0d8049;
+}
 
-/* ========== 模糊玻璃弹窗 ========== */
+/* 模糊玻璃弹窗 */
 .modal-overlay {
   display: none;
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(220,255,230,0.25));
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(220, 255, 230, 0.25));
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   justify-content: center;
@@ -150,34 +198,54 @@ body {
 
 .close-btn {
   position: absolute;
-  top: 15px; right: 20px;
-  font-size: 1.5rem; cursor: pointer; color: #777;
+  top: 15px;
+  right: 20px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #777;
   transition: 0.3s;
 }
-.close-btn:hover { color: #000; transform: scale(1.15); }
+.close-btn:hover {
+  color: #000;
+  transform: scale(1.15);
+}
 
-.expiry-tag {
-  display: inline-block;
-  background: #fff5cc;
-  color: #8a6d00;
-  padding: 6px 14px;
-  border-radius: 12px;
-  font-weight: 600;
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
 }
-
-.modal-buttons { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .btn-modal {
-  border: none; color: white; font-weight: 600; padding: 12px 20px;
-  border-radius: 12px; cursor: pointer; font-size: 1rem;
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
 }
-.btn-modal.used { background: #1e2a38; }
-.btn-modal.meal { background: #1976d2; }
-.btn-modal.donate { background: #ff6600; }
+.btn-modal.used {
+  background: #1e2a38;
+}
+.btn-modal.meal {
+  background: #1976d2;
+}
+.btn-modal.donate {
+  background: #ff6600;
+}
 
 .modal-details {
-  display: flex; justify-content: space-around; text-align: center; color: #333;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  color: #333;
 }
-.modal-details strong { color: #0f9d58; }
+.modal-details strong {
+  color: #0f9d58;
+}
 
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
