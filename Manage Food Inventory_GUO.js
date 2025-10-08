@@ -88,7 +88,7 @@ function barcodeExists(code){
 
 /* Map known barcodes to NEW categories */
 const KNOWN_BARCODES = {
-  '9555555555555': { name:'Mackerel Can', category:'Meat',   storage:'Pantry', defaultDays: 365 },
+  '9555555555555': { name:'Mackerel Can', category:'Meat',   storage:'Pantry',  defaultDays: 365 },
   '9550000123456': { name:'Frozen Dumplings', category:'Grains', storage:'Freezer', defaultDays: 90 },
 };
 
@@ -110,8 +110,8 @@ function renderInventory(){
   const stor = filterStorage?.value || '';
   const expf = filterExpiry?.value || '';
 
-  // Active only
-  let rows = inventory.filter(r => r.status !== 'donated');
+  // ✅ Active only（避免 completed 出现在库存）
+  let rows = inventory.filter(r => r.status === 'active');
 
   if(kw){
     const k = kw.toLowerCase();
@@ -200,6 +200,7 @@ function renderDonationList(){
       <td>
         <div class="row-actions">
           <button class="edit-donation" data-id="${item.id}">Withdraw</button>
+          <button class="complete-donation" data-id="${item.id}">Complete</button>
         </div>
       </td>
     `;
@@ -207,6 +208,7 @@ function renderDonationList(){
   });
 
   donationTbody.querySelectorAll('.edit-donation').forEach(b => b.addEventListener('click', onWithdrawDonation));
+  donationTbody.querySelectorAll('.complete-donation').forEach(b => b.addEventListener('click', onCompleteDonation));
 }
 
 function render(){ renderInventory(); renderDonationList(); }
@@ -371,7 +373,7 @@ function onMarkUsed(e){
   }, 200);
 }
 
-/* ========= Convert / Withdraw Donation ========= */
+/* ========= Convert / Withdraw / Complete Donation ========= */
 let donationTargetId = null;
 function onConvertDonation(e){
   const id = e.currentTarget.getAttribute('data-id');
@@ -424,8 +426,41 @@ function onWithdrawDonation(e){
 
   inventory[idx].status = 'active';
   inventory[idx].donationDetails = null;
+
+  // 留存 donation log 状态
+  const did = inventory[idx].linkedDonationId;
+  if(did){
+    const dIndex = donations.findIndex(d=>d.id === did);
+    if(dIndex >= 0){ donations[dIndex].status = 'withdrawn'; donations[dIndex].withdrawnAt = Date.now(); }
+  }
+
   persistAll(); render();
   showToast('Donation withdrawn.');
+}
+
+/* ✅ 新增：Complete Donation */
+function onCompleteDonation(e){
+  const id = e.currentTarget.getAttribute('data-id');
+  const idx = inventory.findIndex(i => i.id === id);
+  if(idx < 0) return;
+
+  const ok = confirm('Mark this donation as completed?');
+  if(!ok) return;
+
+  // 标记完成（从 Donation List 过滤掉）
+  inventory[idx].status = 'completed';
+  if(!inventory[idx].donationDetails) inventory[idx].donationDetails = {};
+  inventory[idx].donationDetails.completedAt = Date.now();
+
+  // 更新 donation 历史日志
+  const did = inventory[idx].linkedDonationId;
+  if(did){
+    const dIndex = donations.findIndex(d=>d.id === did);
+    if(dIndex >= 0){ donations[dIndex].status = 'completed'; donations[dIndex].completedAt = Date.now(); }
+  }
+
+  persistAll(); render();
+  showToast('Donation completed.');
 }
 
 /* ========= Search & Filters ========= */
@@ -472,7 +507,7 @@ batchEditBtn?.addEventListener('click', ()=>{
   if(skipped.length) alert('Skipped:\n' + skipped.join('\n'));
 });
 
-/* Batch Mark as Used (unchanged) */
+/* Batch Mark as Used */
 batchUsedBtn?.addEventListener('click', ()=>{
   const ids = getSelectedIds();
   if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
@@ -500,7 +535,7 @@ batchUsedBtn?.addEventListener('click', ()=>{
   if(skipped.length) alert('Skipped:\n' + skipped.join('\n'));
 });
 
-/* Batch Delete (unchanged) */
+/* Batch Delete */
 batchDeleteBtn?.addEventListener('click', ()=>{
   const ids = getSelectedIds();
   if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
@@ -524,7 +559,7 @@ batchDeleteBtn?.addEventListener('click', ()=>{
   showToast(`Deleted ${deleted} item(s).`);
 });
 
-/* Batch Convert to Donation (write donationDetails in-place) */
+/* Batch Convert to Donation */
 batchDonateBtn?.addEventListener('click', ()=>{
   const ids = getSelectedIds();
   if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
@@ -565,7 +600,7 @@ batchDonateBtn?.addEventListener('click', ()=>{
   if(skipped.length) alert('Skipped:\n' + skipped.join('\n'));
 });
 
-/* ========= Add via Barcode (default category -> Grains; storage from preset) ========= */
+/* ========= Add via Barcode ========= */
 scanBtn.addEventListener('click', ()=>{
   const code = prompt('Enter barcode number:','');
   if(code === null || code.trim()===''){ return; }

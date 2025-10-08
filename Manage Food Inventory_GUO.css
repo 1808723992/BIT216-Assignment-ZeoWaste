@@ -194,6 +194,21 @@ tbody tr:hover{ background: rgba(15,157,88,.05); }
 .row-actions .edit-donation:focus-visible{ outline:none; box-shadow: 0 0 0 4px rgba(27,94,32,.22); }
 .row-actions .edit-donation:active{ transform: translateY(1px); }
 
+
+/* Donation List: Complete button (high contrast, success green) */
+.row-actions .complete-donation{
+  background:#2e7d32;  /* success green, 与主题协调 */
+  color:#fff;
+  border:0;
+  border-radius:999px;
+  padding:8px 14px;
+  font-weight:800;
+  box-shadow:0 2px 6px rgba(46,125,50,.25);
+}
+.row-actions .complete-donation:hover{ background:#256d2a; }
+.row-actions .complete-donation:focus-visible{ outline:none; box-shadow:0 0 0 4px rgba(46,125,50,.22); }
+.row-actions .complete-donation:active{ transform: translateY(1px); }
+
 /* ====== Batch Actions ====== */
 .batch-buttons{ display:flex; flex-wrap:wrap; gap:10px; }
 .batch-buttons button{
