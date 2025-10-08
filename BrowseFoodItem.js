@@ -46,3 +46,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === modal) modal.style.display = "none";
   });
 });
+
+
+// === Expiry sorting feature ===
+document.getElementById("expirySort").addEventListener("change", function() {
+  const value = this.value;
+  const container = document.querySelector(".food-grid");
+  const cards = Array.from(container.children);
+  cards.sort((a, b) => {
+    const dateA = new Date(a.getAttribute("data-expiry"));
+    const dateB = new Date(b.getAttribute("data-expiry"));
+    if (isNaN(dateA) || isNaN(dateB)) return 0;
+    return value === "soonest" ? dateA - dateB : dateB - dateA;
+  });
+  container.innerHTML = "";
+  cards.forEach(card => container.appendChild(card));
+});
