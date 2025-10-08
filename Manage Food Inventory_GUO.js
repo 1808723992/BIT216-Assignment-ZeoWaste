@@ -71,7 +71,7 @@ function openModal(node){ node.classList.remove('hidden'); }
 
 /* Highlight search keyword in a text */
 function highlight(text, keyword){
-  if(!keyword) return escapeHtml(text);
+  if(!keyword) return escapeHtml(text||'');
   const safe = escapeHtml(text||'');
   const re = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')})`, 'ig');
   return safe.replace(re, '<mark>$1</mark>');
@@ -81,7 +81,6 @@ function escapeHtml(str=''){
 }
 
 /* ========= Barcode helpers ========= */
-// 生成唯一 13 位条码（以 9 开头，常见 EAN 长度），避免与现有重复
 function generateBarcode(){
   let code;
   do{
@@ -94,15 +93,22 @@ function barcodeExists(code){
   return inventory.some(it=>it.barcode===code) || donations.some(d=>d.barcode===code);
 }
 
-/* 已知条码库（示例，可扩展或替换为后端） */
 const KNOWN_BARCODES = {
   '9555555555555': { name:'Mackerel Can', category:'Canned', storage:'Pantry', defaultDays: 365 },
   '9550000123456': { name:'Frozen Dumplings', category:'Frozen', storage:'Freezer', defaultDays: 90 },
 };
 
 /* ========= Rendering ========= */
+function bindRowSelectionEvents(){
+  const rowCbs = tbody.querySelectorAll('.row-select');
+  rowCbs.forEach(cb => cb.addEventListener('change', ()=>{
+    const all = tbody.querySelectorAll('.row-select').length;
+    const sel = tbody.querySelectorAll('.row-select:checked').length;
+    if(selectAll) selectAll.checked = (all>0 && sel === all);
+  }));
+}
+
 function render(){
-  // reset selectAll on every render
   if(selectAll) selectAll.checked = false;
 
   const kw = (searchInput?.value || '').trim();
@@ -112,7 +118,6 @@ function render(){
 
   let rows = [...inventory];
 
-  // filtering
   if(kw){
     const k = kw.toLowerCase();
     rows = rows.filter(r => (r.name||'').toLowerCase().includes(k) || (r.notes||'').toLowerCase().includes(k));
@@ -141,19 +146,19 @@ function render(){
                       : item.status === 'donated' ? '<span class="pill donated">Donated</span>'
                       : '<span class="pill active">Active</span>';
 
-    const kw = (searchInput?.value || '').trim();
+    const k = (searchInput?.value || '').trim();
 
     tr.innerHTML = `
       <td><input type="checkbox" class="row-select" data-id="${item.id}"></td>
       <td>
-        ${highlight(item.name, kw)}
+        ${highlight(item.name, k)}
         <span style="color:#7F8C8D; font-size:12px; margin-left:6px;">#${item.barcode || '-'}</span>
       </td>
       <td>${item.quantity}</td>
       <td>${item.expiryDate} ${statusPill}</td>
       <td>${item.category}</td>
       <td>${escapeHtml(item.storage||'')}</td>
-      <td>${highlight(item.notes||'', kw)}</td>
+      <td>${highlight(item.notes||'', k)}</td>
       <td>
         <div class="row-actions">
           <button class="edit" data-id="${item.id}">Edit</button>
@@ -166,14 +171,16 @@ function render(){
     tbody.appendChild(tr);
   });
 
-  // bind row action buttons
   tbody.querySelectorAll('.edit').forEach(b => b.addEventListener('click', onEdit));
   tbody.querySelectorAll('.use').forEach(b => b.addEventListener('click', onMarkUsed));
   tbody.querySelectorAll('.donate').forEach(b => b.addEventListener('click', onConvertDonation));
   tbody.querySelectorAll('.delete').forEach(b => b.addEventListener('click', onDelete));
+
+  // 关键：绑定行选择事件，保证 Select All 同步
+  bindRowSelectionEvents();
 }
 
-/* ========= Add Item (US1) with auto-barcode ========= */
+/* ========= Add Item with auto-barcode ========= */
 foodForm.addEventListener('submit', (e)=>{
   e.preventDefault();
   const name = document.getElementById('itemName').value.trim();
@@ -196,7 +203,6 @@ foodForm.addEventListener('submit', (e)=>{
     return;
   }
 
-  // 重复：仅按 name（忽略大小写） 合并数量
   const dupIndex = inventory.findIndex(i => i.name.toLowerCase() === name.toLowerCase());
   if(dupIndex >= 0){
     const ok = confirm('An item with the same name already exists.\nDo you want to merge the quantity?');
@@ -216,7 +222,7 @@ foodForm.addEventListener('submit', (e)=>{
     status: 'active',
     linkedDonationId: null,
     linkedMealId: null,
-    barcode: generateBarcode() // ✅ 自动生成条码
+    barcode: generateBarcode()
   };
   inventory.push(item);
   persistAll(); render();
@@ -224,7 +230,7 @@ foodForm.addEventListener('submit', (e)=>{
   foodForm.reset();
 });
 
-/* ========= Edit / Delete / Use (原逻辑保持不变) ========= */
+/* ========= Edit / Delete / Use (single) ========= */
 function onEdit(e){
   const id = e.currentTarget.getAttribute('data-id');
   const item = inventory.find(i => i.id === id);
@@ -309,7 +315,6 @@ function onMarkUsed(e){
     showToast('Quantity updated.');
   }
 
-  // reserved meal sync (placeholder)
   persistAll(); render();
 
   setTimeout(()=>{
@@ -317,11 +322,8 @@ function onMarkUsed(e){
       const last = undoStack.pop();
       if(last && last.type==='used'){
         const bi = inventory.findIndex(x => x.id === (last.before.id));
-        if(bi >= 0){
-          inventory[bi] = last.before;
-        }else{
-          inventory.push(last.before);
-        }
+        if(bi >= 0){ inventory[bi] = last.before; }
+        else { inventory.push(last.before); }
         persistAll(); render();
         showToast('Undo successful.');
       }
@@ -329,7 +331,7 @@ function onMarkUsed(e){
   }, 200);
 }
 
-/* ========= Convert to Donation (保持原逻辑；任务2再改为移走) ========= */
+/* ========= Donation (single) ========= */
 let donationTargetId = null;
 function onConvertDonation(e){
   const id = e.currentTarget.getAttribute('data-id');
@@ -366,7 +368,7 @@ donationForm.addEventListener('submit', (e)=>{
     barcode: item.barcode || null
   });
 
-  // 任务2会把它移到 Donation list；此处暂保留状态为 donated
+  // 任务2会改为：移出库存到 Donation list。此处先标记 donated。
   inventory[idx].status = 'donated';
   inventory[idx].linkedDonationId = donationId;
 
@@ -385,19 +387,146 @@ clearFiltersBtn?.addEventListener('click', ()=>{
   render();
 });
 
-/* ========= Batch Actions (保持原逻辑；任务3再修复) ========= */
+/* ========= Batch Actions ========= */
 selectAll?.addEventListener('change', ()=>{
   document.querySelectorAll('.row-select').forEach(cb => cb.checked = selectAll.checked);
 });
 function getSelectedIds(){
   return Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.getAttribute('data-id'));
 }
-batchEditBtn?.addEventListener('click', ()=> showToast('Batch features will be fixed in Task 3.', 'warn'));
-batchUsedBtn?.addEventListener('click', ()=> showToast('Batch features will be fixed in Task 3.', 'warn'));
-batchDeleteBtn?.addEventListener('click', ()=> showToast('Batch features will be fixed in Task 3.', 'warn'));
-batchDonateBtn?.addEventListener('click', ()=> showToast('Batch features will be fixed in Task 3.', 'warn'));
+function getItemsByIds(ids){
+  return ids.map(id=> inventory.find(i=>i.id===id)).filter(Boolean);
+}
 
-/* ========= Add via Barcode (任务1核心) ========= */
+/* Batch Edit Storage */
+batchEditBtn?.addEventListener('click', ()=>{
+  const ids = getSelectedIds();
+  if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
+  const newStorage = prompt('Enter new storage for selected items (e.g. Fridge/Pantry):','');
+  if(newStorage === null) return;
+
+  let updated=0, skipped=[];
+  ids.forEach(id=>{
+    const idx = inventory.findIndex(i => i.id === id);
+    if(idx<0) return;
+    const it = inventory[idx];
+    if(it.status === 'donated'){
+      skipped.push(`${it.name} (#${it.barcode||'-'}): already donated`);
+      return;
+    }
+    inventory[idx].storage = newStorage;
+    updated++;
+  });
+  persistAll(); render();
+  showToast(`Updated storage for ${updated} item(s).`);
+  if(skipped.length) alert('Skipped:\n' + skipped.join('\n'));
+});
+
+/* Batch Mark as Used */
+batchUsedBtn?.addEventListener('click', ()=>{
+  const ids = getSelectedIds();
+  if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
+  const used = Number(prompt('Enter quantity to use for each selected item:','1'));
+  if(!Number.isFinite(used) || used<=0){ showToast('Invalid quantity.', 'error'); return; }
+
+  let updated=0, removed=0, skipped=[];
+  // 复制 ids，避免遍历中修改 inventory 引发索引问题
+  ids.slice().forEach(id=>{
+    const idx = inventory.findIndex(i => i.id === id);
+    if(idx<0) return;
+    const it = inventory[idx];
+    if(it.status === 'donated'){
+      skipped.push(`${it.name} (#${it.barcode||'-'}): donated item`);
+      return;
+    }
+    const prev = {...it};
+    undoStack.push({type:'used', before: prev});
+    if(undoStack.length > 20) undoStack.shift();
+
+    it.quantity -= used;
+    if(it.quantity <= 0){
+      inventory.splice(idx,1);
+      removed++;
+    }else{
+      inventory[idx] = it;
+      updated++;
+    }
+  });
+
+  persistAll(); render();
+  showToast(`Batch used → ${updated} updated, ${removed} removed.`);
+  if(skipped.length) alert('Skipped:\n' + skipped.join('\n'));
+});
+
+/* Batch Delete */
+batchDeleteBtn?.addEventListener('click', ()=>{
+  const ids = getSelectedIds();
+  if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
+
+  const hasDonationLinked = ids.some(id=>{
+    const it = inventory.find(i=>i.id===id);
+    return it && it.linkedDonationId;
+  });
+  const msg = hasDonationLinked
+    ? 'Some selected items are tied to a donation. Proceed to delete?'
+    : 'Delete selected items?';
+
+  if(!confirm(msg)) return;
+
+  let deleted=0;
+  ids.slice().forEach(id=>{
+    const beforeLen = inventory.length;
+    inventory = inventory.filter(i => i.id !== id);
+    if(inventory.length < beforeLen) deleted++;
+  });
+  persistAll(); render();
+  showToast(`Deleted ${deleted} item(s).`);
+});
+
+/* Batch Convert to Donation */
+batchDonateBtn?.addEventListener('click', ()=>{
+  const ids = getSelectedIds();
+  if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
+
+  const pickupLocation = prompt('Pickup Location for selected items:', '');
+  if(pickupLocation === null || pickupLocation.trim()===''){ showToast('Pickup location is required.', 'error'); return; }
+  const availability = prompt('Availability time (e.g. 10 AM – 5 PM):', '');
+  if(availability === null || availability.trim()===''){ showToast('Availability time is required.', 'error'); return; }
+
+  let created=0, skipped=[];
+  ids.forEach(id=>{
+    const idx = inventory.findIndex(i => i.id === id);
+    if(idx<0) return;
+    const it = inventory[idx];
+    if(it.status === 'donated'){
+      skipped.push(`${it.name} (#${it.barcode||'-'}): already donated`);
+      return;
+    }
+
+    const donationId = 'd_' + uid();
+    donations.push({
+      id: donationId,
+      itemRef: it.id,
+      name: it.name,
+      quantity: it.quantity,
+      expiryDate: it.expiryDate,
+      pickupLocation, availability,
+      notes: '',
+      createdAt: Date.now(),
+      status: 'open',
+      barcode: it.barcode || null
+    });
+    inventory[idx].status = 'donated';
+    inventory[idx].linkedDonationId = donationId;
+    created++;
+  });
+
+  persistAll(); render();
+  showToast(`Created ${created} donation listing(s).`);
+  if(skipped.length) alert('Skipped:\n' + skipped.join('\n'));
+});
+
+/* ========= Add via Barcode ========= */
 scanBtn.addEventListener('click', ()=>{
   const code = prompt('Enter barcode number:','');
   if(code === null || code.trim()===''){ return; }
@@ -407,7 +536,6 @@ scanBtn.addEventListener('click', ()=>{
   let item;
 
   if(preset){
-    // 已知条码：使用预设 & 默认保质期
     item = {
       id: uid(),
       name: preset.name,
@@ -420,9 +548,8 @@ scanBtn.addEventListener('click', ()=>{
       status: 'active',
       linkedDonationId: null,
       linkedMealId: null,
-      barcode // 使用用户输入的条码
+      barcode
     };
-    // 按名称忽略大小写合并
     const dupIndex = inventory.findIndex(i => i.name.toLowerCase() === item.name.toLowerCase());
     if(dupIndex >= 0){
       inventory[dupIndex].quantity += item.quantity;
@@ -433,7 +560,6 @@ scanBtn.addEventListener('click', ()=>{
       showToast('Recognized barcode. Item added.');
     }
   }else{
-    // 未知条码：按默认模板直接创建，方便后续编辑
     item = {
       id: uid(),
       name: `Unknown (${barcode})`,
@@ -448,7 +574,6 @@ scanBtn.addEventListener('click', ()=>{
       linkedMealId: null,
       barcode
     };
-    // 以名称忽略大小写合并
     const dupIndex = inventory.findIndex(i => i.name.toLowerCase() === item.name.toLowerCase());
     if(dupIndex >= 0){
       inventory[dupIndex].quantity += item.quantity;
