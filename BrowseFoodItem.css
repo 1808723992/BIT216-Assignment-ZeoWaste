@@ -244,3 +244,95 @@ body {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+
+/* ===== Mint UI for Filters (drop-in) ===== */
+:root{
+  --mint-50:#f4fbf6;   /* 最浅底色 */
+  --mint-100:#e9f7ef;  /* 容器/控件底色 */
+  --mint-200:#cfead6;  /* 描边 */
+  --mint-300:#b9e5c5;  /* 聚焦光圈 */
+  --mint-500:#34a853;  /* 主题绿 */
+  --mint-700:#2e7d32;  /* 深绿（文字/图标） */
+}
+
+.filters{
+  display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+  background: linear-gradient(180deg, var(--mint-50), #ffffff);
+  border:1px solid var(--mint-200);
+  border-radius:16px;
+  padding:16px 20px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+}
+
+.filter-group{display:flex; gap:12px; align-items:center;}
+.filter-group:focus-within{
+  outline: 3px solid var(--mint-300);
+  outline-offset: 2px;
+  border-radius:14px;
+}
+
+
+.filters input[type="text"],
+.filters input[type="search"],
+.filters select{
+  appearance:none;
+  background: var(--mint-100);
+  border:2px solid var(--mint-200);
+  color:#1b3721;
+  padding:10px 14px;
+  border-radius:12px;
+  font-size:.95rem;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.filters input[type="text"]:focus,
+.filters input[type="search"]:focus,
+.filters select:focus{
+  border-color: var(--mint-500);
+  box-shadow:0 0 0 4px var(--mint-300);
+  background:#fff;
+}
+
+
+#searchBox,
+.search-input{
+  padding-left:36px; /* 给图标留空间 */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%232e7d32' d='M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 9.5 16a6.47 6.47 0 0 0 4.23-1.57l.27.28v.79l5 5L20.5 19l-5-5zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z'/></svg>");
+  background-repeat:no-repeat;
+  background-size:18px 18px;
+  background-position:10px 50%;
+}
+#searchBox::placeholder,
+.search-input::placeholder{ color:#5aa56a; }
+
+.checkbox-group label{
+  display:inline-flex; align-items:center; gap:8px;
+  color: var(--mint-700); font-weight:600;
+}
+.checkbox-group input[type="checkbox"]{
+  width:16px; height:16px;
+  accent-color: var(--mint-700); /* 现代浏览器原生着色 */
+}
+
+.btn-clear{
+  background:transparent;
+  border:1px solid transparent;
+  color: var(--mint-700);
+  font-weight:700;
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  transition: background .15s ease, border-color .15s ease;
+  order:-1;              /* ← 把它放到最左侧 */
+}
+.btn-clear::before{ content:"✕"; margin-right:6px; }
+.btn-clear:hover{
+  background: var(--mint-100);
+  border-color: var(--mint-200);
+}
+
+.filters select{
+  border-radius:14px;
+  font-weight:700;
+  color:#165a23;
+}
