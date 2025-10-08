@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const foodGrid = document.querySelector(".food-grid");
 
   // ✅ 从PHP加载数据库数据
-  fetch("BIT216-Assignment-ZeoWaste\BrowsePhp\FetchFoodItem.php")
+  fetch("FetchFoodItem.php")
     .then(res => res.json())
     .then(data => {
       foodGrid.innerHTML = ""; // 清空静态卡片

@@ -3,7 +3,7 @@
 $servername = "localhost";
 $username = "root";
 $password = ""; // 如果有密码填上
-$dbname = "zeowaste_db";
+$dbname = "zeowaste";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
