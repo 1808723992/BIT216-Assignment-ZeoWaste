@@ -1,7 +1,7 @@
 /* ========= Data Model & Storage ========= */
 const STORAGE_KEYS = {
   INVENTORY: 'sp_inventory',
-  DONATIONS: 'sp_donations',
+  DONATIONS: 'sp_donations',   // history log only
   UNDO: 'sp_undo_stack'
 };
 
@@ -20,6 +20,7 @@ function persistAll(){
 /* ========= DOM Refs ========= */
 const notificationEl = document.getElementById('notification');
 const tbody = document.querySelector('#inventoryTable tbody');
+const donationTbody = document.querySelector('#donationTable tbody');
 const selectAll = document.getElementById('selectAll');
 
 /* Forms */
@@ -48,18 +49,9 @@ const scanBtn = document.getElementById('scanBtn');
 /* ========= Utilities ========= */
 function uid(){ return 'i_' + Math.random().toString(36).slice(2,9) + Date.now().toString(36); }
 function todayISO(){ return new Date().toISOString().slice(0,10); }
-function addDaysISO(days){
-  const d = new Date(); d.setDate(d.getDate()+days);
-  return d.toISOString().slice(0,10);
-}
-function daysBetween(aISO, bISO){
-  const a = new Date(aISO + 'T00:00:00'); const b = new Date(bISO + 'T00:00:00');
-  return Math.floor((a - b) / (1000*60*60*24));
-}
-function isNearExpiry(expiry){
-  const diff = Math.floor((new Date(expiry) - new Date(todayISO()))/(1000*60*60*24));
-  return diff >= 0 && diff <= 3;
-}
+function addDaysISO(days){ const d = new Date(); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
+function isNearExpiry(expiry){ const diff = Math.floor((new Date(expiry)-new Date(todayISO()))/(1000*60*60*24)); return diff>=0 && diff<=3; }
+
 function showToast(msg, type=''){
   notificationEl.textContent = msg;
   notificationEl.className = 'notification' + (type ? ' ' + type : '');
@@ -69,16 +61,17 @@ function showToast(msg, type=''){
 function closeModal(node){ node.classList.add('hidden'); }
 function openModal(node){ node.classList.remove('hidden'); }
 
-/* Highlight search keyword in a text */
 function highlight(text, keyword){
   if(!keyword) return escapeHtml(text||'');
   const safe = escapeHtml(text||'');
   const re = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')})`, 'ig');
   return safe.replace(re, '<mark>$1</mark>');
 }
-function escapeHtml(str=''){
-  return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
+function escapeHtml(str=''){ return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* ========= Enumerations ========= */
+const ALLOWED_CATEGORIES = ['Dairy','Vegetable','Bakery','Grains','Meat','Fruit'];
+const ALLOWED_STORAGE = ['Fridge','Freezer','Pantry'];
 
 /* ========= Barcode helpers ========= */
 function generateBarcode(){
@@ -93,9 +86,10 @@ function barcodeExists(code){
   return inventory.some(it=>it.barcode===code) || donations.some(d=>d.barcode===code);
 }
 
+/* Map known barcodes to NEW categories */
 const KNOWN_BARCODES = {
-  '9555555555555': { name:'Mackerel Can', category:'Canned', storage:'Pantry', defaultDays: 365 },
-  '9550000123456': { name:'Frozen Dumplings', category:'Frozen', storage:'Freezer', defaultDays: 90 },
+  '9555555555555': { name:'Mackerel Can', category:'Meat',   storage:'Pantry', defaultDays: 365 },
+  '9550000123456': { name:'Frozen Dumplings', category:'Grains', storage:'Freezer', defaultDays: 90 },
 };
 
 /* ========= Rendering ========= */
@@ -108,7 +102,7 @@ function bindRowSelectionEvents(){
   }));
 }
 
-function render(){
+function renderInventory(){
   if(selectAll) selectAll.checked = false;
 
   const kw = (searchInput?.value || '').trim();
@@ -116,7 +110,8 @@ function render(){
   const stor = filterStorage?.value || '';
   const expf = filterExpiry?.value || '';
 
-  let rows = [...inventory];
+  // Active only
+  let rows = inventory.filter(r => r.status !== 'donated');
 
   if(kw){
     const k = kw.toLowerCase();
@@ -140,12 +135,9 @@ function render(){
     const tr = document.createElement('tr');
     const near = isNearExpiry(item.expiryDate);
     const expired = item.expiryDate < todayISO();
-
     const statusPill = expired ? '<span class="pill expired">Expired</span>'
                       : near ? '<span class="pill near">Near Expiry</span>'
-                      : item.status === 'donated' ? '<span class="pill donated">Donated</span>'
                       : '<span class="pill active">Active</span>';
-
     const k = (searchInput?.value || '').trim();
 
     tr.innerHTML = `
@@ -176,31 +168,73 @@ function render(){
   tbody.querySelectorAll('.donate').forEach(b => b.addEventListener('click', onConvertDonation));
   tbody.querySelectorAll('.delete').forEach(b => b.addEventListener('click', onDelete));
 
-  // 关键：绑定行选择事件，保证 Select All 同步
   bindRowSelectionEvents();
 }
 
-/* ========= Add Item with auto-barcode ========= */
+function renderDonationList(){
+  let rows = inventory.filter(r => r.status === 'donated');
+
+  donationTbody.innerHTML = '';
+  if(rows.length === 0){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="9">No donation items.</td>`;
+    donationTbody.appendChild(tr);
+    return;
+  }
+
+  rows.forEach(item=>{
+    const details = item.donationDetails || {};
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        ${escapeHtml(item.name)}
+        <span style="color:#7F8C8D; font-size:12px; margin-left:6px;">#${item.barcode || '-'}</span>
+      </td>
+      <td>${item.quantity}</td>
+      <td>${item.expiryDate}</td>
+      <td>${item.category}</td> <!-- hidden by HTML style -->
+      <td>${escapeHtml(item.storage||'')}</td> <!-- hidden -->
+      <td>${escapeHtml(item.notes||'')}</td>   <!-- hidden -->
+      <td>${escapeHtml(details.pickupLocation || '')}</td>
+      <td>${escapeHtml(details.availability || '')}</td>
+      <td>
+        <div class="row-actions">
+          <button class="edit-donation" data-id="${item.id}">Withdraw</button>
+        </div>
+      </td>
+    `;
+    donationTbody.appendChild(tr);
+  });
+
+  donationTbody.querySelectorAll('.edit-donation').forEach(b => b.addEventListener('click', onWithdrawDonation));
+}
+
+function render(){ renderInventory(); renderDonationList(); }
+
+/* ========= Add Item with required storage & new categories ========= */
 foodForm.addEventListener('submit', (e)=>{
   e.preventDefault();
   const name = document.getElementById('itemName').value.trim();
   const quantity = Number(document.getElementById('quantity').value);
   const expiryDate = document.getElementById('expiryDate').value;
   const category = document.getElementById('category').value;
-  const storage = document.getElementById('storage').value.trim();
+  const storage = document.getElementById('storage').value; // select
   const notes = document.getElementById('notes').value.trim();
 
-  if(!name || !quantity || !expiryDate || !category){
-    showToast('Please complete all required fields.', 'error');
-    return;
+  if(!name || !quantity || !expiryDate || !category || !storage){
+    showToast('Please complete all required fields.', 'error'); return;
   }
   if(!Number.isFinite(quantity) || quantity <= 0){
-    showToast('Quantity must be a positive number.', 'error');
-    return;
+    showToast('Quantity must be a positive number.', 'error'); return;
   }
   if(!/^\d{4}-\d{2}-\d{2}$/.test(expiryDate)){
-    showToast('Please enter a valid expiry date (YYYY-MM-DD).', 'error');
-    return;
+    showToast('Please enter a valid expiry date (YYYY-MM-DD).', 'error'); return;
+  }
+  if(!ALLOWED_CATEGORIES.includes(category)){
+    showToast('Invalid category.', 'error'); return;
+  }
+  if(!ALLOWED_STORAGE.includes(storage)){
+    showToast('Invalid storage.', 'error'); return;
   }
 
   const dupIndex = inventory.findIndex(i => i.name.toLowerCase() === name.toLowerCase());
@@ -220,6 +254,7 @@ foodForm.addEventListener('submit', (e)=>{
     name, quantity, expiryDate, category, storage, notes,
     timestamp: Date.now(),
     status: 'active',
+    donationDetails: null,
     linkedDonationId: null,
     linkedMealId: null,
     barcode: generateBarcode()
@@ -230,7 +265,7 @@ foodForm.addEventListener('submit', (e)=>{
   foodForm.reset();
 });
 
-/* ========= Edit / Delete / Use (single) ========= */
+/* ========= Edit / Delete / Use ========= */
 function onEdit(e){
   const id = e.currentTarget.getAttribute('data-id');
   const item = inventory.find(i => i.id === id);
@@ -239,8 +274,8 @@ function onEdit(e){
   document.getElementById('editName').value = item.name;
   document.getElementById('editQuantity').value = item.quantity;
   document.getElementById('editExpiry').value = item.expiryDate;
-  document.getElementById('editCategory').value = item.category;
-  document.getElementById('editStorage').value = item.storage || '';
+  document.getElementById('editCategory').value = ALLOWED_CATEGORIES.includes(item.category) ? item.category : 'Grains';
+  document.getElementById('editStorage').value = ALLOWED_STORAGE.includes(item.storage) ? item.storage : '';
   document.getElementById('editNotes').value = item.notes || '';
   openModal(editModal);
 }
@@ -251,14 +286,20 @@ editForm.addEventListener('submit', (e)=>{
   const quantity = Number(document.getElementById('editQuantity').value);
   const expiry = document.getElementById('editExpiry').value;
   const category = document.getElementById('editCategory').value;
-  const storage = document.getElementById('editStorage').value.trim();
+  const storage = document.getElementById('editStorage').value;
   const notes = document.getElementById('editNotes').value.trim();
 
-  if(!name || !quantity || !expiry || !category){
+  if(!name || !quantity || !expiry || !category || !storage){
     showToast('Please complete all required fields.', 'error'); return;
   }
   if(!Number.isFinite(quantity) || quantity <= 0){
     showToast('Quantity must be a positive number.', 'error'); return;
+  }
+  if(!ALLOWED_CATEGORIES.includes(category)){
+    showToast('Invalid category.', 'error'); return;
+  }
+  if(!ALLOWED_STORAGE.includes(storage)){
+    showToast('Invalid storage.', 'error'); return;
   }
 
   const idx = inventory.findIndex(i => i.id === id);
@@ -275,7 +316,7 @@ function onDelete(e){
   const item = inventory.find(i => i.id === id);
   if(!item) return;
 
-  if(item.linkedDonationId){
+  if(item.status === 'donated' || item.linkedDonationId){
     const ok = confirm('This item is tied to a donation. Are you sure?');
     if(!ok) return;
   }else{
@@ -322,8 +363,7 @@ function onMarkUsed(e){
       const last = undoStack.pop();
       if(last && last.type==='used'){
         const bi = inventory.findIndex(x => x.id === (last.before.id));
-        if(bi >= 0){ inventory[bi] = last.before; }
-        else { inventory.push(last.before); }
+        if(bi >= 0){ inventory[bi] = last.before; } else { inventory.push(last.before); }
         persistAll(); render();
         showToast('Undo successful.');
       }
@@ -331,7 +371,7 @@ function onMarkUsed(e){
   }, 200);
 }
 
-/* ========= Donation (single) ========= */
+/* ========= Convert / Withdraw Donation ========= */
 let donationTargetId = null;
 function onConvertDonation(e){
   const id = e.currentTarget.getAttribute('data-id');
@@ -354,9 +394,12 @@ donationForm.addEventListener('submit', (e)=>{
 
   const item = inventory[idx];
 
-  const donationId = 'd_' + uid();
+  inventory[idx].status = 'donated';
+  inventory[idx].donationDetails = { pickupLocation, availability, donatedAt: Date.now() };
+  inventory[idx].linkedDonationId = inventory[idx].linkedDonationId || ('d_' + uid());
+
   donations.push({
-    id: donationId,
+    id: inventory[idx].linkedDonationId,
     itemRef: item.id,
     name: item.name,
     quantity: item.quantity,
@@ -368,14 +411,22 @@ donationForm.addEventListener('submit', (e)=>{
     barcode: item.barcode || null
   });
 
-  // 任务2会改为：移出库存到 Donation list。此处先标记 donated。
-  inventory[idx].status = 'donated';
-  inventory[idx].linkedDonationId = donationId;
-
   persistAll(); render(); closeModal(donationModal);
-  showToast('Donation listing created.');
+  showToast('Donation created.');
 });
-donationModal.querySelector('.cancelBtn').addEventListener('click', ()=> closeModal(donationModal));
+function onWithdrawDonation(e){
+  const id = e.currentTarget.getAttribute('data-id');
+  const idx = inventory.findIndex(i => i.id === id);
+  if(idx < 0) return;
+
+  const ok = confirm('Withdraw this donation and move it back to active inventory?');
+  if(!ok) return;
+
+  inventory[idx].status = 'active';
+  inventory[idx].donationDetails = null;
+  persistAll(); render();
+  showToast('Donation withdrawn.');
+}
 
 /* ========= Search & Filters ========= */
 [searchInput, filterCategory, filterStorage, filterExpiry].forEach(el=> el && el.addEventListener('input', render));
@@ -394,26 +445,25 @@ selectAll?.addEventListener('change', ()=>{
 function getSelectedIds(){
   return Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.getAttribute('data-id'));
 }
-function getItemsByIds(ids){
-  return ids.map(id=> inventory.find(i=>i.id===id)).filter(Boolean);
-}
 
-/* Batch Edit Storage */
+/* Batch Edit Storage (validate enum) */
 batchEditBtn?.addEventListener('click', ()=>{
   const ids = getSelectedIds();
   if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
-  const newStorage = prompt('Enter new storage for selected items (e.g. Fridge/Pantry):','');
-  if(newStorage === null) return;
+  const input = prompt('Enter new storage (Fridge / Freezer / Pantry):','');
+  if(input === null) return;
+
+  const norm = (input||'').trim().toLowerCase();
+  const map = {fridge:'Fridge', freezer:'Freezer', pantry:'Pantry'};
+  const newStorage = map[norm];
+  if(!newStorage){ showToast('Invalid storage. Use: Fridge / Freezer / Pantry', 'error'); return; }
 
   let updated=0, skipped=[];
   ids.forEach(id=>{
     const idx = inventory.findIndex(i => i.id === id);
     if(idx<0) return;
     const it = inventory[idx];
-    if(it.status === 'donated'){
-      skipped.push(`${it.name} (#${it.barcode||'-'}): already donated`);
-      return;
-    }
+    if(it.status === 'donated'){ skipped.push(`${it.name} (#${it.barcode||'-'}): donated item`); return; }
     inventory[idx].storage = newStorage;
     updated++;
   });
@@ -422,7 +472,7 @@ batchEditBtn?.addEventListener('click', ()=>{
   if(skipped.length) alert('Skipped:\n' + skipped.join('\n'));
 });
 
-/* Batch Mark as Used */
+/* Batch Mark as Used (unchanged) */
 batchUsedBtn?.addEventListener('click', ()=>{
   const ids = getSelectedIds();
   if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
@@ -430,27 +480,19 @@ batchUsedBtn?.addEventListener('click', ()=>{
   if(!Number.isFinite(used) || used<=0){ showToast('Invalid quantity.', 'error'); return; }
 
   let updated=0, removed=0, skipped=[];
-  // 复制 ids，避免遍历中修改 inventory 引发索引问题
   ids.slice().forEach(id=>{
     const idx = inventory.findIndex(i => i.id === id);
     if(idx<0) return;
     const it = inventory[idx];
-    if(it.status === 'donated'){
-      skipped.push(`${it.name} (#${it.barcode||'-'}): donated item`);
-      return;
-    }
+    if(it.status === 'donated'){ skipped.push(`${it.name} (#${it.barcode||'-'}): donated item`); return; }
+
     const prev = {...it};
     undoStack.push({type:'used', before: prev});
     if(undoStack.length > 20) undoStack.shift();
 
     it.quantity -= used;
-    if(it.quantity <= 0){
-      inventory.splice(idx,1);
-      removed++;
-    }else{
-      inventory[idx] = it;
-      updated++;
-    }
+    if(it.quantity <= 0){ inventory.splice(idx,1); removed++; }
+    else { inventory[idx] = it; updated++; }
   });
 
   persistAll(); render();
@@ -458,19 +500,18 @@ batchUsedBtn?.addEventListener('click', ()=>{
   if(skipped.length) alert('Skipped:\n' + skipped.join('\n'));
 });
 
-/* Batch Delete */
+/* Batch Delete (unchanged) */
 batchDeleteBtn?.addEventListener('click', ()=>{
   const ids = getSelectedIds();
   if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
 
   const hasDonationLinked = ids.some(id=>{
     const it = inventory.find(i=>i.id===id);
-    return it && it.linkedDonationId;
+    return it && (it.status==='donated' || it.linkedDonationId);
   });
   const msg = hasDonationLinked
     ? 'Some selected items are tied to a donation. Proceed to delete?'
     : 'Delete selected items?';
-
   if(!confirm(msg)) return;
 
   let deleted=0;
@@ -483,7 +524,7 @@ batchDeleteBtn?.addEventListener('click', ()=>{
   showToast(`Deleted ${deleted} item(s).`);
 });
 
-/* Batch Convert to Donation */
+/* Batch Convert to Donation (write donationDetails in-place) */
 batchDonateBtn?.addEventListener('click', ()=>{
   const ids = getSelectedIds();
   if(ids.length===0){ showToast('Select items first.', 'warn'); return; }
@@ -498,14 +539,14 @@ batchDonateBtn?.addEventListener('click', ()=>{
     const idx = inventory.findIndex(i => i.id === id);
     if(idx<0) return;
     const it = inventory[idx];
-    if(it.status === 'donated'){
-      skipped.push(`${it.name} (#${it.barcode||'-'}): already donated`);
-      return;
-    }
+    if(it.status === 'donated'){ skipped.push(`${it.name} (#${it.barcode||'-'}): already donated`); return; }
 
-    const donationId = 'd_' + uid();
+    inventory[idx].status = 'donated';
+    inventory[idx].donationDetails = { pickupLocation, availability, donatedAt: Date.now() };
+    inventory[idx].linkedDonationId = inventory[idx].linkedDonationId || ('d_' + uid());
+
     donations.push({
-      id: donationId,
+      id: inventory[idx].linkedDonationId,
       itemRef: it.id,
       name: it.name,
       quantity: it.quantity,
@@ -516,17 +557,15 @@ batchDonateBtn?.addEventListener('click', ()=>{
       status: 'open',
       barcode: it.barcode || null
     });
-    inventory[idx].status = 'donated';
-    inventory[idx].linkedDonationId = donationId;
     created++;
   });
 
   persistAll(); render();
-  showToast(`Created ${created} donation listing(s).`);
+  showToast(`Converted ${created} item(s) to donation.`);
   if(skipped.length) alert('Skipped:\n' + skipped.join('\n'));
 });
 
-/* ========= Add via Barcode ========= */
+/* ========= Add via Barcode (default category -> Grains; storage from preset) ========= */
 scanBtn.addEventListener('click', ()=>{
   const code = prompt('Enter barcode number:','');
   if(code === null || code.trim()===''){ return; }
@@ -541,11 +580,12 @@ scanBtn.addEventListener('click', ()=>{
       name: preset.name,
       quantity: 1,
       expiryDate: addDaysISO(preset.defaultDays || 7),
-      category: preset.category || 'Others',
-      storage: preset.storage || '',
+      category: ALLOWED_CATEGORIES.includes(preset.category)? preset.category : 'Grains',
+      storage: ALLOWED_STORAGE.includes(preset.storage)? preset.storage : 'Pantry',
       notes: '',
       timestamp: Date.now(),
       status: 'active',
+      donationDetails: null,
       linkedDonationId: null,
       linkedMealId: null,
       barcode
@@ -565,11 +605,12 @@ scanBtn.addEventListener('click', ()=>{
       name: `Unknown (${barcode})`,
       quantity: 1,
       expiryDate: addDaysISO(7),
-      category: 'Others',
-      storage: '',
+      category: 'Grains',
+      storage: 'Pantry',
       notes: 'Added via barcode (unknown). Please edit details.',
       timestamp: Date.now(),
       status: 'active',
+      donationDetails: null,
       linkedDonationId: null,
       linkedMealId: null,
       barcode
