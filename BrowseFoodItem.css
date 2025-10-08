@@ -67,7 +67,7 @@ body {
 /* 卡片布局 */
 .food-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 25px;
   margin-top: 40px;
 }
@@ -257,3 +257,34 @@ body {
   margin-top:auto; /* consume remaining space above, stick to bottom */
   align-self:center; /* keep centered like before */
 }
+
+
+/* === Compact card adjustments to fit more items on screen === */
+.browse{
+  max-width: 1320px; /* allow a bit wider layout on desktop */
+}
+
+.food-grid{ gap:18px; }
+
+.food-card{
+  padding:18px;
+  border-radius:18px;
+  gap:6px;           /* reduce internal spacing */
+  min-height: 280px; /* keep a tidy, shorter card */
+}
+
+/* tighten text spacing */
+.food-card p{ margin:6px 0; color:#4a4a4a; font-size:0.95rem; }
+
+/* slightly smaller icon to reduce vertical height */
+.food-icon{ width:56px; height:56px; font-size:34px; margin-bottom:8px; }
+
+/* smaller heading and category */
+.food-card h3{ font-size:1.1rem; margin:4px 0 8px; }
+.food-card .category{ font-size:0.9rem; margin-bottom:2px; }
+
+/* slimmer tags */
+.expiry-tag{ font-size:0.78rem; padding:3px 8px; margin:2px 4px; border-radius:12px; }
+
+/* keep action button glued to bottom with comfortable spacing */
+.food-card .btn-primary{ margin-top:auto; padding:9px 16px; border-radius:7px; }
