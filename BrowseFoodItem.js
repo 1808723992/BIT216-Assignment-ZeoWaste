@@ -5,6 +5,12 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch("FetchFoodItem.php")
     .then(res => res.json())
     .then(data => {
+      console.log("✅ 从PHP获取到的数据:", data); // 调试
+      if (!Array.isArray(data)) {
+        console.error("❌ 后端返回的不是数组:", data);
+        foodGrid.innerHTML = `<p style="color:red;">❌ Invalid data format.</p>`;
+        return;
+      }
       foodGrid.innerHTML = ""; // 清空静态卡片
       data.forEach(item => {
         const card = document.createElement("div");
