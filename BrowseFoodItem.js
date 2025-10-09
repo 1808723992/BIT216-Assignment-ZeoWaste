@@ -38,11 +38,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
       attachCardEvents(); // 绑定按钮与弹窗事件
     })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("HTTP error! Status: " + res.status);
+      }
+      return res.json();
+    })
+    .then(data => {
+      console.log("✅ 从数据库加载成功:", data); // 👈 调试用
+    })
+    
     .catch(err => {
       console.error("加载食物数据失败:", err);
       foodGrid.innerHTML = `<p style="color:red;">❌ Failed to load food items.</p>`;
     });
-});
+  });
 
 
 // === 全局交互函数 ===
