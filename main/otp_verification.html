@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ZeoWaste - Verify OTP</title>
 
-  <!-- ✅ Use clean sign-in CSS for consistency -->
   <link rel="stylesheet" href="sign_in.css">
-
-  <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -22,14 +19,13 @@
         </div>
       </section>
 
-      <!-- Title + Subtitle -->
       <h1>Email Verification</h1>
       <p class="subtitle">Enter the 6-digit OTP we sent to your email</p>
 
       <!-- OTP Form -->
       <form action="verify_otp_backend.php" method="POST" class="register-form">
-        <!-- For now, hardcoded test email. Will use dynamic PHP later -->
-        <input type="hidden" name="email" value="test@example.com">
+        <!-- ✅ This will be filled using JavaScript -->
+        <input type="hidden" name="email" id="email">
 
         <div class="form-group">
           <label for="otp"><i class="fa fa-key"></i> OTP Code</label>
@@ -43,6 +39,13 @@
     </div>
   </section>
 
-  <script src="register.js"></script>
+  <!-- ✅ Fill the hidden email field -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get('email');
+    if (email) {
+      document.getElementById('email').value = email;
+    }
+  </script>
 </body>
 </html>
