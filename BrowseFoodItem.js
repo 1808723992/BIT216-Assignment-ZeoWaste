@@ -1,67 +1,59 @@
 document.addEventListener("DOMContentLoaded", () => {
   const foodGrid = document.querySelector(".food-grid");
 
-  // ✅ 从PHP加载数据库数据
   fetch("FetchFoodItem.php")
-    .then(res => res.json())
-    .then(data => {
-      console.log("✅ 从PHP获取到的数据:", data); // 调试
-      if (!Array.isArray(data)) {
-        console.error("❌ 后端返回的不是数组:", data);
-        foodGrid.innerHTML = `<p style="color:red;">❌ Invalid data format.</p>`;
-        return;
-      }
-      foodGrid.innerHTML = ""; // 清空静态卡片
-      data.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "food-card";
-        card.dataset.category = item.category;
-        card.setAttribute("data-expiry", item.expiry_date);
-
-        const expiryClass =
-          item.status === "soon" ? "expiry-tag soon" :
-          item.status === "donation" ? "expiry-tag donation" :
-          "expiry-tag fresh";
-
-        card.innerHTML = `
-          <button class="bookmark-btn ${item.bookmarked == 1 ? 'active' : ''}">
-            ${item.bookmarked == 1 ? '★' : '☆'}
-          </button>
-          <div class="food-icon ${item.category.toLowerCase()}"></div>
-          <p class="category">${item.category}</p>
-          <h3>${item.name}</h3>
-          <p>Qty: ${item.quantity}</p>
-          <p>Storage: ${item.storage}</p>
-          <p>Exp: ${item.expiry_date}</p>
-          <span class="${expiryClass}">
-            ${item.status === "soon" ? "Expires Soon" :
-              item.status === "donation" ? "Donation" : "Fresh"}
-          </span>
-          <button class="btn-primary">View Details</button>
-        `;
-        foodGrid.appendChild(card);
-      });
-
-      attachCardEvents(); // 绑定按钮与弹窗事件
-    })
     .then(res => {
-      if (!res.ok) {
-        throw new Error("HTTP error! Status: " + res.status);
-      }
-      return res.json();
+        if (!res.ok) throw new Error("HTTP error! Status: " + res.status);
+        return res.json();
     })
     .then(data => {
-      console.log("✅ 从数据库加载成功:", data); // 👈 调试用
+        console.log("✅ 从PHP获取到的数据:", data);
+        if (!Array.isArray(data)) {
+          console.error("❌ 后端返回的不是数组:", data);
+          foodGrid.innerHTML = `<p style="color:red;">❌ Invalid data format.</p>`;
+          return;
+        }
+        foodGrid.innerHTML = "";
+        data.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "food-card";
+          card.dataset.category = item.category;
+          card.setAttribute("data-expiry", item.expiry_date);
+
+          const expiryClass =
+            item.status === "soon" ? "expiry-tag soon" :
+            item.status === "donation" ? "expiry-tag donation" :
+            "expiry-tag fresh";
+
+          card.innerHTML = `
+            <button class="bookmark-btn ${item.bookmarked == 1 ? 'active' : ''}">
+              ${item.bookmarked == 1 ? '★' : '☆'}
+            </button>
+            <div class="food-icon ${item.category.toLowerCase()}"></div>
+            <p class="category">${item.category}</p>
+            <h3>${item.name}</h3>
+            <p>Qty: ${item.quantity}</p>
+            <p>Storage: ${item.storage}</p>
+            <p>Exp: ${item.expiry_date}</p>
+            <span class="${expiryClass}">
+              ${item.status === "soon" ? "Expires Soon" :
+                item.status === "donation" ? "Donation" : "Fresh"}
+            </span>
+            <button class="btn-primary">View Details</button>
+          `;
+          foodGrid.appendChild(card);
+        });
+
+        // ✅ 加载完再绑定事件
+        attachCardEvents();
     })
-    
     .catch(err => {
-      console.error("加载食物数据失败:", err);
-      foodGrid.innerHTML = `<p style="color:red;">❌ Failed to load food items.</p>`;
+        console.error("加载食物数据失败:", err);
+        foodGrid.innerHTML = `<p style="color:red;">❌ Failed to load food items.</p>`;
     });
-  });
+});
 
-
-// === 全局交互函数 ===
+// ✅ 函数必须定义在最外层
 function attachCardEvents() {
   // 收藏按钮切换
   document.querySelectorAll(".bookmark-btn").forEach(btn => {
@@ -113,7 +105,7 @@ function attachCardEvents() {
     if (e.target === modal) modal.style.display = "none";
   });
 
-  // === 到期排序功能 ===
+  // 到期排序
   const expirySort = document.getElementById("expirySort");
   if (expirySort) {
     expirySort.addEventListener("change", function () {
@@ -131,3 +123,4 @@ function attachCardEvents() {
     });
   }
 }
+
