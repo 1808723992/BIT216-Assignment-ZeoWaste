@@ -1,16 +1,10 @@
 <?php
-// ✅ 连接数据库
-$servername = "localhost";
-$username = "root";
-$password = ""; // 如果有密码填上
-$dbname = "zeowaste";
+header('Content-Type: application/json');
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die(json_encode(["error" => "Database connection failed: " . $conn->connect_error]));
-}
+// 引入数据库连接
+include 'connect.php';
 
-// ✅ 查询数据
+// 查询数据
 $sql = "SELECT * FROM food_items";
 $result = $conn->query($sql);
 
@@ -22,8 +16,6 @@ if ($result && $result->num_rows > 0) {
 }
 
 $conn->close();
-
-// ✅ 返回 JSON
-header('Content-Type: application/json');
 echo json_encode($foods);
 ?>
+
