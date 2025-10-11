@@ -21,11 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
         card.dataset.category = item.food_category;
         card.setAttribute("data-expiry", item.food_expiry_date);
 
-        <span class="${expiryClass}">
-        ${item.status === "soon" ? "Expires This Week" :
-          item.status === "expired" ? "Expired" : "Fresh"}
-        </span>
-
 
         card.innerHTML = `
           <button class="bookmark-btn ${item.bookmarked == 1 ? 'active' : ''}">
@@ -39,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>Exp: ${item.food_expiry_date}</p>
           <span class="${expiryClass}">
             ${item.status === "soon" ? "Expires Soon" :
-              item.status === "donation" ? "Donation" : "Fresh"}
+              item.status === "expired" ? "Expired" : "Fresh"}
           </span>
           <button class="btn-primary">View Details</button>
         `;
