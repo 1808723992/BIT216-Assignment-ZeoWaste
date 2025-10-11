@@ -1,28 +1,42 @@
 <?php
 include 'Connect.php';
 header('Content-Type: application/json; charset=utf-8');
+error_reporting(0);
 
-// ⚙️ 临时固定 user_id = 1 测试
-$user_id = 1;
+$user_id = 1; // 测试阶段固定用户ID
 
-$food_id = $_POST['food_id'] ?? null;
-$action  = $_POST['action'] ?? null;
-
-if (!$food_id || !$action) {
-  echo json_encode(["success" => false, "error" => "Missing parameters"]);
-  exit;
+// ✅ 参数检查
+if (!isset($_POST['food_id']) || !isset($_POST['action'])) {
+    echo json_encode(["success" => false, "error" => "Missing parameters"]);
+    exit;
 }
+
+$food_id = $conn->real_escape_string($_POST['food_id']);
+$action = $_POST['action'];
 
 if ($action === "add") {
-  $sql = "INSERT INTO bookmarked_foods (user_id, food_id) VALUES (?, ?)";
+    // ✅ 检查是否已存在收藏记录
+    $check = $conn->query("SELECT * FROM bookmarked_foods WHERE user_id=$user_id AND food_id='$food_id'");
+    if ($check && $check->num_rows > 0) {
+        // 已存在则更新状态为 active
+        $sql = "UPDATE bookmarked_foods SET status='active', bookmarked_at=NOW() WHERE user_id=$user_id AND food_id='$food_id'";
+    } else {
+        // 不存在则新增
+        $sql = "INSERT INTO bookmarked_foods (user_id, food_id, status) VALUES ($user_id, '$food_id', 'active')";
+    }
+} elseif ($action === "remove") {
+    // ✅ 取消收藏只改状态，不删记录
+    $sql = "UPDATE bookmarked_foods SET status='removed' WHERE user_id=$user_id AND food_id='$food_id'";
 } else {
-  $sql = "DELETE FROM bookmarked_foods WHERE user_id = ? AND food_id = ?";
+    echo json_encode(["success" => false, "error" => "Invalid action"]);
+    exit;
 }
 
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $user_id, $food_id);
-$success = $stmt->execute();
+if ($conn->query($sql)) {
+    echo json_encode(["success" => true]);
+} else {
+    echo json_encode(["success" => false, "error" => $conn->error]);
+}
 
-echo json_encode(["success" => $success]);
 $conn->close();
 ?>

@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .then(data => {
       console.log("✅ 从PHP获取到的数据:", data);
+
       if (!Array.isArray(data)) {
         foodGrid.innerHTML = `<p style="color:red;">❌ Invalid data format.</p>`;
         return;
@@ -15,12 +16,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       foodGrid.innerHTML = "";
       data.forEach(item => {
+        const expiryClass =
+          item.status === "soon" ? "expiry-tag soon" :
+          item.status === "expired" ? "expiry-tag expired" :
+          "expiry-tag fresh";
+
         const card = document.createElement("div");
         card.className = "food-card";
-        card.dataset.id = item.id; // ✅ 添加id
-        card.dataset.category = item.food_category;
-        card.setAttribute("data-expiry", item.food_expiry_date);
-
+        card.dataset.id = item.id;
 
         card.innerHTML = `
           <button class="bookmark-btn ${item.bookmarked == 1 ? 'active' : ''}">
@@ -41,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
         foodGrid.appendChild(card);
       });
 
-      attachCardEvents();
+      attachCardEvents(); // ✅ 调用收藏事件函数
     })
     .catch(err => {
       console.error("加载食物数据失败:", err);
@@ -49,8 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// ✅ 新增收藏按钮事件函数
 function attachCardEvents() {
-  // 收藏按钮切换 + 保存到数据库
   document.querySelectorAll(".bookmark-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const card = btn.closest(".food-card");
