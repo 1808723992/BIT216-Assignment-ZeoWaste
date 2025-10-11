@@ -77,4 +77,41 @@ function attachCardEvents() {
         .catch(err => console.error("❌ 通信错误:", err));
     });
   });
+
+  // 绑定 “View Details” 弹窗功能
+document.querySelectorAll(".food-card .btn-primary").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const card = btn.closest(".food-card");
+    const modal = document.getElementById("foodModal");
+
+    // 从卡片读取数据填充弹窗
+    document.getElementById("modalTitle").textContent = card.querySelector("h3").textContent;
+    document.getElementById("modalCategory").textContent = card.querySelector(".category").textContent;
+    document.getElementById("modalStorageType").textContent = card.querySelector("p:nth-of-type(2)").textContent.replace("Storage: ", "");
+    document.getElementById("modalExpiry").textContent = card.querySelector("p:nth-of-type(3)").textContent.replace("Exp: ", "");
+    document.getElementById("modalQty").textContent = card.querySelector("p:nth-of-type(1)").textContent.replace("Qty: ", "");
+
+    // 显示弹窗
+    modal.style.display = "flex";
+  });
+});
+
+// 绑定关闭按钮
+const closeModal = document.getElementById("closeModal");
+if (closeModal) {
+  closeModal.addEventListener("click", () => {
+    document.getElementById("foodModal").style.display = "none";
+  });
+}
+
+// 点击背景关闭
+const modalOverlay = document.getElementById("foodModal");
+if (modalOverlay) {
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) {
+      modalOverlay.style.display = "none";
+    }
+  });
+}
+
 }

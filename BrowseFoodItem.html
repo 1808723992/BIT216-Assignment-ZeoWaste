@@ -4,13 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ZeoWaste - Browse Food</title>
+
+  <!-- 样式文件 -->
   <link rel="stylesheet" href="nav.css" />
   <link rel="stylesheet" href="BrowseFoodItem.css" />
-  <link rel="stylesheet" href="BrowseFoodItemIcons.css" /> <!-- ✅ 新增图标样式文件 -->
-
-  <!-- Google Material Icons -->
+  <link rel="stylesheet" href="BrowseFoodItemIcons.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
+
 <body>
   <!-- 导航栏加载 -->
   <div id="nav-placeholder"></div>
@@ -57,8 +59,6 @@
         </select>
       </div>
 
-
-
       <div class="filter-group checkbox-group">
         <label><input type="checkbox" id="inStock" checked /> In Stock</label>
         <label><input type="checkbox" id="donation" /> Donation</label>
@@ -68,11 +68,8 @@
       <button class="btn-clear" id="clearBtn">Clear All</button>
     </div>
 
-    <div class="food-grid">
-
-    </div>
-      
-    </div>
+    <!-- 食物展示区 -->
+    <div class="food-grid"></div>
   </section>
 
   <!-- 模糊玻璃弹窗 -->
@@ -80,31 +77,20 @@
     <div class="modal-content">
       <span class="close-btn" id="closeModal">&times;</span>
 
-    <!-- 标题区 -->
       <h2 id="modalTitle">Tomato</h2>
       <p class="modal-subtitle">
         <span id="modalCategory">Vegetable</span> • <span id="modalStorageType">Pantry</span>
       </p>
-
-      <!-- 到期标签 -->
       <div class="expiry-tag" id="modalExpiry">Exp: 2025/09/17 (5d)</div>
 
-      <!-- 操作按钮 -->
       <div class="modal-buttons">
-        <button class="btn-modal used">
-          <span>✔</span> Mark as Used
-        </button>
-        <button class="btn-modal meal">
-          <span>📅</span> Plan for Meal
-        </button>
-        <button class="btn-modal donate">
-          <span>❤️</span> Flag for Donation
-        </button>
+        <button class="btn-modal used"><span>✔</span> Mark as Used</button>
+        <button class="btn-modal meal"><span>📅</span> Plan for Meal</button>
+        <button class="btn-modal donate"><span>❤️</span> Flag for Donation</button>
       </div>
 
       <hr />
 
-      <!-- 底部详情 -->
       <div class="modal-details">
         <div>
           <strong>Quantity</strong><br>
@@ -118,16 +104,16 @@
     </div>
   </div>
 
-
+  <!-- JS 文件 -->
   <script src="BrowseFoodItem.js"></script>
+
+  <!-- 页脚加载 -->
+  <div id="footer-placeholder"></div>
+  <script>
+    fetch("footer.html")
+      .then(res => res.text())
+      .then(data => (document.getElementById("footer-placeholder").innerHTML = data))
+      .catch(err => console.error("页脚加载失败:", err));
+  </script>
 </body>
-
-<div id="footer-placeholder"></div>
-<script>
-  fetch("footer.html")
-    .then(res => res.text())
-    .then(data => (document.getElementById("footer-placeholder").innerHTML = data))
-    .catch(err => console.error("页脚加载失败:", err));
-</script>
-
 </html>
