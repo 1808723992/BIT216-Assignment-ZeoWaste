@@ -67,7 +67,7 @@
 
       <button class="btn-clear" id="clearBtn">Clear All</button>
     </div>
-    
+
     <div class="food-grid">
 
     </div>
@@ -121,4 +121,13 @@
 
   <script src="BrowseFoodItem.js"></script>
 </body>
+
+<div id="footer-placeholder"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(data => (document.getElementById("footer-placeholder").innerHTML = data))
+    .catch(err => console.error("页脚加载失败:", err));
+</script>
+
 </html>
