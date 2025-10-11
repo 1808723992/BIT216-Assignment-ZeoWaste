@@ -2,7 +2,7 @@
 $DB_HOST = "localhost";
 $DB_USER = "root";
 $DB_PASS = ""; 
-$DB_NAME = "zeowaste";
+$DB_NAME = "zeowaste_db";
 
 // === 安全连接：启用异常处理 ===
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);

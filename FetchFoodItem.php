@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 include 'connect.php';
 
 // 查询数据
-$sql = "SELECT * FROM food_items";
+$sql = "SELECT * FROM fooditems";
 $result = $conn->query($sql);
 
 $foods = [];

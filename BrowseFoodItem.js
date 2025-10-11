@@ -30,11 +30,11 @@ document.addEventListener("DOMContentLoaded", () => {
               ${item.bookmarked == 1 ? '★' : '☆'}
             </button>
             <div class="food-icon ${item.category.toLowerCase()}"></div>
-            <p class="category">${item.category}</p>
-            <h3>${item.name}</h3>
-            <p>Qty: ${item.quantity}</p>
-            <p>Storage: ${item.storage}</p>
-            <p>Exp: ${item.expiry_date}</p>
+            <p class="category">${item.food_category}</p>
+            <h3>${item.food_name}</h3>
+            <p>Qty: ${item.food_quantity}</p>
+            <p>Storage: ${item.food_storage}</p>
+            <p>Exp: ${item.food_expiry_date}</p>
             <span class="${expiryClass}">
               ${item.status === "soon" ? "Expires Soon" :
                 item.status === "donation" ? "Donation" : "Fresh"}
