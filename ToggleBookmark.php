@@ -11,27 +11,35 @@ if (!isset($_POST['food_id']) || !isset($_POST['action'])) {
     exit;
 }
 
-$food_id = $conn->real_escape_string($_POST['food_id']);
+$food_id = intval($_POST['food_id']);
 $action = $_POST['action'];
 
+// ✅ 添加收藏
 if ($action === "add") {
-    // ✅ 检查是否已存在收藏记录
-    $check = $conn->query("SELECT * FROM bookmarked_foods WHERE user_id=$user_id AND food_id='$food_id'");
+    $check = $conn->query("SELECT * FROM bookmarked_foods WHERE user_id=$user_id AND food_id=$food_id");
     if ($check && $check->num_rows > 0) {
-        // 已存在则更新状态为 active
-        $sql = "UPDATE bookmarked_foods SET status='active', bookmarked_at=NOW() WHERE user_id=$user_id AND food_id='$food_id'";
+        // 已存在 → 恢复 active 状态
+        $sql = "UPDATE bookmarked_foods 
+                SET status='active', bookmarked_at=NOW() 
+                WHERE user_id=$user_id AND food_id=$food_id";
     } else {
-        // 不存在则新增
-        $sql = "INSERT INTO bookmarked_foods (user_id, food_id, status) VALUES ($user_id, '$food_id', 'active')";
+        // 新增收藏
+        $sql = "INSERT INTO bookmarked_foods (user_id, food_id, status) 
+                VALUES ($user_id, $food_id, 'active')";
     }
-} elseif ($action === "remove") {
-    // ✅ 取消收藏只改状态，不删记录
-    $sql = "UPDATE bookmarked_foods SET status='removed' WHERE user_id=$user_id AND food_id='$food_id'";
-} else {
+}
+// ✅ 取消收藏
+elseif ($action === "remove") {
+    $sql = "UPDATE bookmarked_foods 
+            SET status='removed' 
+            WHERE user_id=$user_id AND food_id=$food_id";
+} 
+else {
     echo json_encode(["success" => false, "error" => "Invalid action"]);
     exit;
 }
 
+// ✅ 执行并返回结果
 if ($conn->query($sql)) {
     echo json_encode(["success" => true]);
 } else {

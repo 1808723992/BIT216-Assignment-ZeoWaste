@@ -1,11 +1,11 @@
 <?php
 include 'Connect.php';
 header('Content-Type: application/json; charset=utf-8');
-error_reporting(0); // 防止 warning 干扰 JSON 输出
+error_reporting(0);
 
 $user_id = 1; // 测试阶段固定用户ID
 
-// ✅ 查询食物列表并检查收藏状态
+// ✅ 查询 fooditems 并检查是否被收藏
 $sql = "
   SELECT 
     f.food_id AS id,
@@ -34,9 +34,9 @@ if ($result && $result->num_rows > 0) {
     $expiry_date = new DateTime($row["food_expiry_date"]);
     $today = new DateTime();
     $interval = $today->diff($expiry_date);
-    $days_left = (int)$interval->format('%r%a'); // 可为负（过期）
+    $days_left = (int)$interval->format('%r%a'); // 可为负数（过期）
 
-    // ✅ 自动判断状态
+    // ✅ 状态判断
     if ($days_left < 0) {
         $status = "expired";
     } elseif ($days_left <= 7) {
@@ -58,6 +58,7 @@ if ($result && $result->num_rows > 0) {
   }
 }
 
+// ✅ 输出 JSON
 echo json_encode($data);
 $conn->close();
 ?>
