@@ -59,15 +59,14 @@
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 ZeoWaste. All Rights Reserved.</p>
-    <div class="footer-links">
-      <a href="#">About Us</a>
-      <a href="#">Contact</a>
-      <a href="#">Privacy Policy</a>
-    </div>
-  </footer>
 
 </body>
+<div id="footer-placeholder"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(data => (document.getElementById("footer-placeholder").innerHTML = data))
+    .catch(err => console.error("页脚加载失败:", err));
+</script>
+
 </html>
