@@ -191,10 +191,10 @@ footer {
   color: #fff;
 }
 
-/* === 修复 Apps Launcher 文字超出框外问 === */
+/* === 修复 Apps Launcher 文字超出框外问题（ZeoWaste 专用补丁） === */
 .app-item {
   width: 100%;
-  max-width: 78px;              /* 限制宽度，防止长文字撑破 */
+  max-width: 85px;              /* 限制宽度，防止长文字撑破 */
   text-align: center;
   word-wrap: break-word;        /* 允许自动换行 */
   overflow-wrap: break-word;
@@ -218,4 +218,15 @@ footer {
   line-height: 1.1;
   word-break: break-word;
 }
+
+/* === 修复 Apps 图标过大问题 === */
+#appLauncherBtn {
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+
 
