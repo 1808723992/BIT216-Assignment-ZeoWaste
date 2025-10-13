@@ -3,7 +3,7 @@ include 'Connect.php';
 header('Content-Type: application/json; charset=utf-8');
 error_reporting(0);
 
-$user_id = 1; // 测试阶段固定用户ID
+$user_id = 1; // ✅ 测试阶段固定用户ID
 
 // ✅ 查询 fooditems 并检查是否被收藏
 $sql = "
@@ -36,15 +36,18 @@ if ($result && $result->num_rows > 0) {
     $interval = $today->diff($expiry_date);
     $days_left = (int)$interval->format('%r%a'); // 可为负数（过期）
 
-    // ✅ 状态判断
-    if ($days_left < 0) {
-        $status = "expired";
-    } elseif ($days_left <= 7) {
-        $status = "soon";
+    // ✅ 自动判断状态（支持 donation）
+    if (isset($row["food_status"]) && strtolower($row["food_status"]) === "donation") {
+        $status = "donation"; // 保留捐赠状态
+    } elseif ($days_left < 0) {
+        $status = "expired"; // 已过期
+    } elseif ($days_left <= 3) {
+        $status = "soon";    // 3 天内即将过期
     } else {
-        $status = "fresh";
+        $status = "fresh";   // 仍新鲜
     }
 
+    // ✅ 组装输出数据
     $data[] = [
       "id" => $row["id"],
       "food_name" => $row["food_name"],

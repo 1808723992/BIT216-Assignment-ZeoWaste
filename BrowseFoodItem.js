@@ -11,21 +11,34 @@ document.addEventListener("DOMContentLoaded", () => {
   const bookmarked = document.getElementById("bookmarked");
   const clearBtn = document.getElementById("clearBtn");
 
+  const checkboxes = [inStock, donation, bookmarked];
   let allFoodItems = [];
+
+  // ✅ 确保至少选中一个过滤器
+  checkboxes.forEach(cb => {
+    cb.addEventListener("change", () => {
+      const checkedCount = checkboxes.filter(c => c.checked).length;
+      if (checkedCount === 0) {
+        cb.checked = true;
+        alert("At least one filter must be selected.");
+      }
+      applyFilters();
+    });
+  });
 
   // === 1️⃣ 从 PHP 加载数据 ===
   fetch("FetchFoodItem.php")
     .then(res => res.json())
     .then(data => {
       allFoodItems = data;
-      renderFoodItems(allFoodItems);
+      applyFilters(); // ✅ 初次加载直接应用过滤
     })
     .catch(err => {
       console.error("❌ 加载数据失败:", err);
       foodGrid.innerHTML = `<p style="color:red;">Failed to load food items.</p>`;
     });
 
-  // === 2️⃣ 渲染函数 ===
+  // === 2️⃣ 渲染食物卡片 ===
   function renderFoodItems(items) {
     foodGrid.innerHTML = "";
 
@@ -65,6 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
               ? "Expires Soon"
               : item.status === "expired"
               ? "Expired"
+              : item.status === "donation"
+              ? "Donation"
               : "Fresh"
           }
         </span>
@@ -76,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
     attachCardEvents();
   }
 
-  // === 3️⃣ 绑定事件 ===
+  // === 3️⃣ 卡片交互事件 ===
   function attachCardEvents() {
     // 收藏按钮切换
     document.querySelectorAll(".bookmark-btn").forEach(btn => {
@@ -131,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const modalOverlay = document.getElementById("foodModal");
     if (modalOverlay) {
-      modalOverlay.addEventListener("click", (e) => {
+      modalOverlay.addEventListener("click", e => {
         if (e.target === modalOverlay) {
           modalOverlay.style.display = "none";
         }
@@ -168,17 +183,18 @@ document.addEventListener("DOMContentLoaded", () => {
       filtered = filtered.filter(f => f.bookmarked == 1);
     }
 
-    // In Stock（假设有数量字段）
+    // In Stock（数量>0）
     if (inStock.checked) {
       filtered = filtered.filter(f => parseInt(f.food_quantity) > 0);
     }
 
-    // Donation（预留逻辑）
+    // Donation（状态为donation）
     if (donation.checked) {
       filtered = filtered.filter(f => f.status === "donation");
     }
+    
 
-    // Expiry 排序
+    // Expiry 筛选 + 排序
     if (expirySort.value === "soonest") {
       filtered.sort((a, b) =>
         new Date(a.food_expiry_date) - new Date(b.food_expiry_date)
@@ -187,15 +203,23 @@ document.addEventListener("DOMContentLoaded", () => {
       filtered.sort((a, b) =>
         new Date(b.food_expiry_date) - new Date(a.food_expiry_date)
       );
+    } else if (expirySort.value === "Expiry Items") {
+      // ✅ 只显示过期的食物
+      filtered = filtered.filter(f => f.status === "expired");
     }
-
+    
     renderFoodItems(filtered);
   }
 
   // === 5️⃣ 绑定筛选交互 ===
-  [searchBox, categorySelect, storageSelect, expirySort, inStock, donation, bookmarked]
-    .forEach(el => el.addEventListener("input", applyFilters));
+  [searchBox, categorySelect, storageSelect, expirySort].forEach(el =>
+    el.addEventListener("input", applyFilters)
+  );
+  [inStock, donation, bookmarked].forEach(el =>
+    el.addEventListener("change", applyFilters)
+  );
 
+  // 清空按钮
   clearBtn.addEventListener("click", () => {
     searchBox.value = "";
     categorySelect.value = "All Categories";
