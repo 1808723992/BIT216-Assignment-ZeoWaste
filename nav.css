@@ -194,7 +194,7 @@ footer {
 /* === 修复 Apps Launcher 文字超出框外问题（ZeoWaste 专用补丁） === */
 .app-item {
   width: 100%;
-  max-width: 85px;              /* 限制宽度，防止长文字撑破 */
+  max-width: 75px;              /* 限制宽度，防止长文字撑破 */
   text-align: center;
   word-wrap: break-word;        /* 允许自动换行 */
   overflow-wrap: break-word;
