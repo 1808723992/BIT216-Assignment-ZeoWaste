@@ -43,24 +43,43 @@
       console.error("❌ 超过重试次数，App launcher 未找到。");
     }
   }
-
-  // 实际绑定逻辑
+  
   function bindNavEvents(appBtn, appDropdown) {
-    const profileDropdown = document.querySelector(".profile-menu .dropdown");
+  const profileBtn = document.getElementById("profileBtn");
+  const profileDropdown = document.getElementById("profileDropdown");
 
-    appBtn.addEventListener("click", e => {
+  // --- 打开 Apps Launcher ---
+  appBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    // 关闭另一个菜单
+    if (profileDropdown) profileDropdown.style.display = "none";
+    appDropdown.style.display =
+      appDropdown.style.display === "block" ? "none" : "block";
+  });
+
+  // --- 打开 Profile Menu ---
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener("click", e => {
       e.stopPropagation();
-      if (profileDropdown) profileDropdown.style.display = "none";
-      appDropdown.style.display =
-        appDropdown.style.display === "block" ? "none" : "block";
+      if (appDropdown) appDropdown.style.display = "none";
+      profileDropdown.style.display =
+        profileDropdown.style.display === "block" ? "none" : "block";
     });
-
-    document.addEventListener("click", e => {
-      if (!e.target.closest(".app-launcher")) {
-        appDropdown.style.display = "none";
-      }
-    });
-
-    appDropdown.addEventListener("click", e => e.stopPropagation());
   }
+
+  // --- 点击页面空白处自动关闭 ---
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".app-launcher") && !e.target.closest(".profile-menu")) {
+      appDropdown.style.display = "none";
+      if (profileDropdown) profileDropdown.style.display = "none";
+    }
+  });
+
+  appDropdown.addEventListener("click", e => e.stopPropagation());
+  if (profileDropdown) profileDropdown.addEventListener("click", e => e.stopPropagation());
+}
+
+
+ 
+
 })();
