@@ -43,7 +43,7 @@
 }
 
 /* 水果 🍎 */
-.food-icon.fruits::before {
+.food-icon.fruit::before {
   content: "nutrition"; 
 }
 
