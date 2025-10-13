@@ -1,6 +1,6 @@
 /* =================== SavePlate – Frontend JS (PHP API) =================== */
 /* 1) 修改为你的目录名（绝对路径，避免 404） */
-const BASE_PATH = '/saveplate-api';
+const BASE_PATH = '/BIT216-Assignment-ZeoWaste/Main/ManageInventory';
 const API_BASE  = `${BASE_PATH}/api/api.php`;
 
 /* 2) API helper */
