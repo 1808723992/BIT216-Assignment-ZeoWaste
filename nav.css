@@ -190,3 +190,32 @@ footer {
 .footer-links a:hover {
   color: #fff;
 }
+
+/* === 修复 Apps Launcher 文字超出框外问 === */
+.app-item {
+  width: 100%;
+  max-width: 78px;              /* 限制宽度，防止长文字撑破 */
+  text-align: center;
+  word-wrap: break-word;        /* 允许自动换行 */
+  overflow-wrap: break-word;
+  white-space: normal;          /* 强制允许文字换行 */
+}
+
+.app-item span {
+  display: block;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* 图标与文字间距 */
+.app-item .material-symbols-outlined {
+  margin-bottom: 4px;
+}
+
+/* 微调字体大小，让长名字完整显示 */
+.app-item span:not(.material-symbols-outlined) {
+  font-size: 0.8rem;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
