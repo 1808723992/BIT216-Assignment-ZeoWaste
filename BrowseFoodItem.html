@@ -16,12 +16,21 @@
 <body>
   <!-- 导航栏加载 -->
   <div id="nav-placeholder"></div>
+  <div id="nav-placeholder"></div>
   <script>
     fetch("nav.html")
       .then(res => res.text())
-      .then(data => (document.getElementById("nav-placeholder").innerHTML = data))
+      .then(data => {
+        document.getElementById("nav-placeholder").innerHTML = data;
+
+        // ✅ 动态加载 nav.js（保证导航逻辑生效）
+        const script = document.createElement("script");
+        script.src = "nav.js";
+        document.body.appendChild(script);
+      })
       .catch(err => console.error("导航加载失败:", err));
   </script>
+
 
   <!-- 页面主内容 -->
   <section class="browse">
