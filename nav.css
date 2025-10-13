@@ -174,13 +174,6 @@
   transform: scale(1.05);
 }
 
-#appLauncherBtn {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-}
-
-
 /* ========== FOOTER ========== */
 footer {
   background: #111;
@@ -198,9 +191,10 @@ footer {
   color: #fff;
 }
 
+/* === 修复 Apps Launcher 文字超出框外问题（ZeoWaste 专用补丁） === */
 .app-item {
   width: 100%;
-  max-width: 77px;              /* 限制宽度，防止长文字撑破 */
+  max-width: 75px;              /* 限制宽度，防止长文字撑破 */
   text-align: center;
   word-wrap: break-word;        /* 允许自动换行 */
   overflow-wrap: break-word;
@@ -224,3 +218,41 @@ footer {
   line-height: 1.1;
   word-break: break-word;
 }
+
+/* === 修复 Apps 图标过大问题 === */
+#appLauncherBtn {
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* === 修复右上角 Apps 与 Setting 图标垂直对齐问题 === */
+.nav-icons img.nav-icon,
+#appLauncherBtn,
+.avatar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+}
+
+/* 保证高度一致 */
+#appLauncherBtn,
+.avatar {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+/* 微调整体与顶部距离，确保与 logo 水平 */
+.nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 2px; /* 如果图标仍然略低，可改成负值：-2px */
+}
+
+
+
