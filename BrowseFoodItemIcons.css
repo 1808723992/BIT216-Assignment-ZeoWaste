@@ -39,12 +39,12 @@
 
 /* 谷物 🍚 */
 .food-icon.grains::before {
-  content: "rice_bowl"; /* ✅ 更新为更自然的粮食图标 */
+  content: "rice_bowl"; 
 }
 
 /* 水果 🍎 */
 .food-icon.fruits::before {
-  content: "emoji_food_beverage"; /* 可改为 nutrition 或 local_florist */
+  content: "nutrition"; 
 }
 
 /* 肉类 🍖 */
