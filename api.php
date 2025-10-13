@@ -1,38 +1,63 @@
 <?php
-/* api/api.php */
+/* api/api.php — adapted to zeowaste_db.fooditems / donations */
 require_once __DIR__ . '/config.php';
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
-
 if ($action === 'ping') { JOK(['pong'=>true, 'time'=>date('c')]); }
 
+/* 将 fooditems 行映射为前端旧字段名 */
+function map_item_row($r){
+  return [
+    'id'      => (int)$r['food_id'],
+    'name'    => $r['food_name'],
+    'quantity'=> qty_to_int($r['food_quantity']),
+    'expiry_date' => $r['food_expiry_date'],
+    'category'=> $r['food_category'],
+    'storage' => $r['food_storage'],
+    'notes'   => $r['notes'],
+    'barcode' => $r['barcode'],
+    'status'  => $r['food_status'],
+    'donation_pickup_location' => $r['donation_pickup_location'],
+    'donation_availability'    => $r['donation_availability'],
+    'donated_at'   => $r['donated_at'],
+    'completed_at' => $r['completed_at'],
+    'created_at'   => $r['created_at'],
+    'updated_at'   => $r['updated_at'],
+  ];
+}
+
+/* —— 路由 —— */
 switch ($action) {
 
   /* ================== Read ================== */
-  case 'list_items': { // status=active|donated|completed + 可选过滤
+  case 'list_items': { // status=active|donated|completed + filters
     $status = $_GET['status'] ?? 'active';
     $q      = trim($_GET['q'] ?? '');
     $cat    = $_GET['category'] ?? '';
     $stor   = $_GET['storage'] ?? '';
     $expiry = $_GET['expiry'] ?? ''; // near|expired|''
 
-    $sql = "SELECT * FROM items WHERE status=:s";
+    $sql = "SELECT * FROM fooditems WHERE food_status=:s";
     $p = [':s'=>$status];
 
-    if ($q !== '') { $sql .= " AND (name LIKE :q OR notes LIKE :q)"; $p[':q']="%$q%"; }
-    if ($cat !== '') { $sql .= " AND category=:c"; $p[':c']=$cat; }
-    if ($stor !== '') { $sql .= " AND storage=:t"; $p[':t']=$stor; }
-    if ($expiry === 'near') { $sql .= " AND DATEDIFF(expiry_date, CURDATE()) BETWEEN 0 AND 3"; }
-    if ($expiry === 'expired') { $sql .= " AND expiry_date < CURDATE()"; }
+    if ($q !== '') { $sql .= " AND (food_name LIKE :q OR notes LIKE :q)"; $p[':q']="%$q%"; }
+    if ($cat !== '') { $sql .= " AND food_category=:c"; $p[':c']=$cat; }
+    if ($stor !== '') { $sql .= " AND food_storage=:t"; $p[':t']=$stor; }
+    if ($expiry === 'near')    { $sql .= " AND DATEDIFF(food_expiry_date, CURDATE()) BETWEEN 0 AND 3"; }
+    if ($expiry === 'expired') { $sql .= " AND food_expiry_date < CURDATE()"; }
 
-    $sql .= " ORDER BY expiry_date ASC, id DESC";
+    $sql .= " ORDER BY food_expiry_date ASC, food_id DESC";
     $st = $pdo->prepare($sql); $st->execute($p);
-    JOK(['items'=>$st->fetchAll()]);
+    $rows = $st->fetchAll();
+    $items = array_map('map_item_row', $rows);
+    JOK(['items'=>$items]);
   }
 
   case 'list_donations': {
-    $st = $pdo->query("SELECT * FROM items WHERE status='donated' ORDER BY donated_at DESC, id DESC");
-    JOK(['items'=>$st->fetchAll()]);
+    $st = $pdo->query("SELECT * FROM fooditems WHERE food_status='donated' ORDER BY donated_at DESC, food_id DESC");
+    $rows = $st->fetchAll();
+    $items = array_map('map_item_row', $rows);
+    JOK(['items'=>$items]);
   }
 
   /* ================== Create / Update / Delete ================== */
@@ -41,36 +66,56 @@ switch ($action) {
     foreach (['name','quantity','expiry_date','category','storage'] as $f) {
       if (!isset($b[$f]) || $b[$f]==='') JERR("MISSING_$f");
     }
+    $name = trim($b['name']);
+    $qty  = (int)$b['quantity']; if ($qty<=0) JERR('BAD_QUANTITY');
+    $exp  = $b['expiry_date'];
+    $cat  = $b['category'];
+    $sto  = $b['storage'];
+    $notes= $b['notes'] ?? null;
+    $barcode = $b['barcode'] ?? null;
 
-    // 合并规则：同名(忽略大小写) + 同 expiry_date → 合并数量；否则新建
-    $sel = $pdo->prepare("SELECT id,quantity FROM items WHERE LOWER(name)=LOWER(:n) AND expiry_date=:e AND status<>'completed' LIMIT 1");
-    $sel->execute([':n'=>$b['name'], ':e'=>$b['expiry_date']]);
-    if ($row = $sel->fetch()) {
-      $newQ = (int)$row['quantity'] + (int)$b['quantity'];
-      $pdo->prepare("UPDATE items SET quantity=:q, updated_at=:u WHERE id=:id")
-          ->execute([':q'=>$newQ, ':u'=>NOW(), ':id'=>$row['id']]);
-      JOK(['merged'=>true, 'item_id'=>$row['id'], 'quantity'=>$newQ]);
+    /* 优先用条码合并 */
+    if ($barcode) {
+      $sel = $pdo->prepare("SELECT food_id, food_quantity FROM fooditems WHERE barcode=:bc LIMIT 1");
+      $sel->execute([':bc'=>$barcode]);
+      if ($row = $sel->fetch()) {
+        $newQ = qty_to_int($row['food_quantity']) + $qty;
+        $pdo->prepare("UPDATE fooditems SET food_quantity=:q, updated_at=:u WHERE food_id=:id")
+            ->execute([':q'=>(string)$newQ, ':u'=>NOW(), ':id'=>$row['food_id']]);
+        JOK(['merged'=>true, 'item_id'=>(int)$row['food_id'], 'quantity'=>$newQ]);
+      }
     }
 
-    $ins = $pdo->prepare("INSERT INTO items
-      (name,quantity,expiry_date,category,storage,notes,barcode,status,created_at,updated_at)
+    /* 同名(忽略大小写)+同到期日+未完成 → 合并 */
+    $sel = $pdo->prepare("SELECT food_id, food_quantity FROM fooditems
+                          WHERE LOWER(food_name)=LOWER(:n) AND food_expiry_date=:e AND food_status<>'completed' LIMIT 1");
+    $sel->execute([':n'=>$name, ':e'=>$exp]);
+    if ($row = $sel->fetch()) {
+      $newQ = qty_to_int($row['food_quantity']) + $qty;
+      $pdo->prepare("UPDATE fooditems SET food_quantity=:q, updated_at=:u WHERE food_id=:id")
+          ->execute([':q'=>(string)$newQ, ':u'=>NOW(), ':id'=>$row['food_id']]);
+      JOK(['merged'=>true, 'item_id'=>(int)$row['food_id'], 'quantity'=>$newQ]);
+    }
+
+    /* 插入（若无条码则为空） */
+    $ins = $pdo->prepare("INSERT INTO fooditems
+      (food_name,food_quantity,food_expiry_date,food_category,food_storage,notes,barcode,food_status,created_at,updated_at)
       VALUES (:name,:qty,:exp,:cat,:sto,:notes,:barcode,'active',:now,:now)");
     $ins->execute([
-      ':name'=>$b['name'], ':qty'=>(int)$b['quantity'], ':exp'=>$b['expiry_date'],
-      ':cat'=>$b['category'], ':sto'=>$b['storage'], ':notes'=>$b['notes'] ?? null,
-      ':barcode'=>$b['barcode'] ?? null, ':now'=>NOW()
+      ':name'=>$name, ':qty'=>(string)$qty, ':exp'=>$exp, ':cat'=>$cat, ':sto'=>$sto,
+      ':notes'=>$notes, ':barcode'=>$barcode, ':now'=>NOW()
     ]);
-    JOK(['merged'=>false, 'item_id'=>$pdo->lastInsertId()]);
+    JOK(['merged'=>false, 'item_id'=>(int)$pdo->lastInsertId()]);
   }
 
   case 'edit_item': {
     $b = JSON_BODY();
     foreach (['id','name','quantity','expiry_date','category','storage'] as $f) if (empty($b[$f])) JERR("MISSING_$f");
-    $pdo->prepare("UPDATE items SET
-      name=:n, quantity=:q, expiry_date=:e, category=:c, storage=:s, notes=:no, updated_at=:u
-      WHERE id=:id")
+    $pdo->prepare("UPDATE fooditems SET
+      food_name=:n, food_quantity=:q, food_expiry_date=:e, food_category=:c, food_storage=:s, notes=:no, updated_at=:u
+      WHERE food_id=:id")
       ->execute([
-        ':n'=>$b['name'], ':q'=>(int)$b['quantity'], ':e'=>$b['expiry_date'],
+        ':n'=>trim($b['name']), ':q'=>(string)max(0,(int)$b['quantity']), ':e'=>$b['expiry_date'],
         ':c'=>$b['category'], ':s'=>$b['storage'], ':no'=>$b['notes'] ?? null,
         ':u'=>NOW(), ':id'=>(int)$b['id']
       ]);
@@ -79,7 +124,7 @@ switch ($action) {
 
   case 'delete_item': {
     $b = JSON_BODY(); if (empty($b['id'])) JERR('MISSING_id');
-    $pdo->prepare("DELETE FROM items WHERE id=:id")->execute([':id'=>(int)$b['id']]);
+    $pdo->prepare("DELETE FROM fooditems WHERE food_id=:id")->execute([':id'=>(int)$b['id']]);
     JOK();
   }
 
@@ -87,12 +132,13 @@ switch ($action) {
     $b = JSON_BODY(); if (empty($b['id'])) JERR('MISSING_id');
     $used = max(1, (int)($b['used'] ?? 1));
     $pdo->beginTransaction();
-    $st = $pdo->prepare("SELECT quantity FROM items WHERE id=:id FOR UPDATE");
+    $st = $pdo->prepare("SELECT food_quantity FROM fooditems WHERE food_id=:id FOR UPDATE");
     $st->execute([':id'=>(int)$b['id']]);
     if (!($row=$st->fetch())) { $pdo->rollBack(); JERR('NOT_FOUND',404); }
-    $left = (int)$row['quantity'] - $used;
-    if ($left <= 0) $pdo->prepare("DELETE FROM items WHERE id=:id")->execute([':id'=>(int)$b['id']]);
-    else $pdo->prepare("UPDATE items SET quantity=:q, updated_at=:u WHERE id=:id")->execute([':q'=>$left, ':u'=>NOW(), ':id'=>(int)$b['id']]);
+    $left = qty_to_int($row['food_quantity']) - $used;
+    if ($left <= 0) $pdo->prepare("DELETE FROM fooditems WHERE food_id=:id")->execute([':id'=>(int)$b['id']]);
+    else $pdo->prepare("UPDATE fooditems SET food_quantity=:q, updated_at=:u WHERE food_id=:id")
+              ->execute([':q'=>(string)$left, ':u'=>NOW(), ':id'=>(int)$b['id']]);
     $pdo->commit();
     JOK(['left'=>max(0,$left)]);
   }
@@ -103,13 +149,13 @@ switch ($action) {
     foreach (['id','pickup_location','availability'] as $f) if (empty($b[$f])) JERR("MISSING_$f");
 
     $pdo->beginTransaction();
-    $pdo->prepare("UPDATE items SET status='donated',
+    $pdo->prepare("UPDATE fooditems SET food_status='donated',
         donation_pickup_location=:loc, donation_availability=:av,
         donated_at=:t, updated_at=:t
-        WHERE id=:id")
+        WHERE food_id=:id")
       ->execute([':loc'=>$b['pickup_location'], ':av'=>$b['availability'], ':t'=>NOW(), ':id'=>(int)$b['id']]);
 
-    $pdo->prepare("INSERT INTO donations (item_id,pickup_location,availability,notes,status,created_at)
+    $pdo->prepare("INSERT INTO donations (food_item_id,pickup_location,availability,notes,donation_status,created_at)
                    VALUES (:id,:loc,:av,:no,'open',:t)")
       ->execute([':id'=>(int)$b['id'], ':loc'=>$b['pickup_location'], ':av'=>$b['availability'], ':no'=>$b['notes'] ?? null, ':t'=>NOW()]);
     $pdo->commit();
@@ -119,13 +165,13 @@ switch ($action) {
   case 'withdraw_donation': { // id
     $b = JSON_BODY(); if (empty($b['id'])) JERR('MISSING_id');
     $pdo->beginTransaction();
-    $pdo->prepare("UPDATE items SET status='active',
+    $pdo->prepare("UPDATE fooditems SET food_status='active',
         donation_pickup_location=NULL, donation_availability=NULL,
         donated_at=NULL, updated_at=:t
-        WHERE id=:id")
+        WHERE food_id=:id")
       ->execute([':t'=>NOW(), ':id'=>(int)$b['id']]);
-    $pdo->prepare("UPDATE donations SET status='withdrawn', withdrawn_at=:t
-                   WHERE item_id=:id AND status='open'")
+    $pdo->prepare("UPDATE donations SET donation_status='withdrawn', withdrawn_at=:t
+                   WHERE food_item_id=:id AND donation_status='open'")
       ->execute([':t'=>NOW(), ':id'=>(int)$b['id']]);
     $pdo->commit();
     JOK();
@@ -134,10 +180,10 @@ switch ($action) {
   case 'complete_donation': { // id
     $b = JSON_BODY(); if (empty($b['id'])) JERR('MISSING_id');
     $pdo->beginTransaction();
-    $pdo->prepare("UPDATE items SET status='completed', completed_at=:t, updated_at=:t WHERE id=:id")
+    $pdo->prepare("UPDATE fooditems SET food_status='completed', completed_at=:t, updated_at=:t WHERE food_id=:id")
       ->execute([':t'=>NOW(), ':id'=>(int)$b['id']]);
-    $pdo->prepare("UPDATE donations SET status='completed', completed_at=:t
-                   WHERE item_id=:id AND status='open'")
+    $pdo->prepare("UPDATE donations SET donation_status='completed', completed_at=:t
+                   WHERE food_item_id=:id AND donation_status='open'")
       ->execute([':t'=>NOW(), ':id'=>(int)$b['id']]);
     $pdo->commit();
     JOK();
@@ -149,7 +195,7 @@ switch ($action) {
     if (!$ids || !in_array($sto, ['Fridge','Freezer','Pantry'])) JERR('BAD_REQUEST');
     $in = implode(',', array_fill(0, count($ids), '?'));
     $params = array_merge([$sto, NOW()], array_map('intval',$ids));
-    $pdo->prepare("UPDATE items SET storage=?, updated_at=? WHERE id IN ($in) AND status='active'")->execute($params);
+    $pdo->prepare("UPDATE fooditems SET food_storage=?, updated_at=? WHERE food_id IN ($in) AND food_status='active'")->execute($params);
     JOK();
   }
 
@@ -158,12 +204,12 @@ switch ($action) {
     if (!$ids) JERR('BAD_REQUEST');
     $pdo->beginTransaction();
     foreach ($ids as $id) {
-      $sel = $pdo->prepare("SELECT quantity FROM items WHERE id=? AND status='active' FOR UPDATE");
+      $sel = $pdo->prepare("SELECT food_quantity FROM fooditems WHERE food_id=? AND food_status='active' FOR UPDATE");
       $sel->execute([(int)$id]);
       if ($row = $sel->fetch()) {
-        $left = (int)$row['quantity'] - $used;
-        if ($left <= 0) $pdo->prepare("DELETE FROM items WHERE id=?")->execute([(int)$id]);
-        else $pdo->prepare("UPDATE items SET quantity=?, updated_at=? WHERE id=?")->execute([$left, NOW(), (int)$id]);
+        $left = qty_to_int($row['food_quantity']) - $used;
+        if ($left <= 0) $pdo->prepare("DELETE FROM fooditems WHERE food_id=?")->execute([(int)$id]);
+        else $pdo->prepare("UPDATE fooditems SET food_quantity=?, updated_at=? WHERE food_id=?")->execute([(string)$left, NOW(), (int)$id]);
       }
     }
     $pdo->commit(); JOK();
@@ -172,7 +218,7 @@ switch ($action) {
   case 'batch_delete': { // ids[]
     $b = JSON_BODY(); $ids = $b['ids'] ?? []; if (!$ids) JERR('BAD_REQUEST');
     $in = implode(',', array_fill(0, count($ids), '?'));
-    $pdo->prepare("DELETE FROM items WHERE id IN ($in)")->execute(array_map('intval',$ids));
+    $pdo->prepare("DELETE FROM fooditems WHERE food_id IN ($in)")->execute(array_map('intval',$ids));
     JOK();
   }
 
@@ -181,9 +227,9 @@ switch ($action) {
     if(!$ids || !$loc || !$av) JERR('BAD_REQUEST');
     $pdo->beginTransaction();
     foreach ($ids as $id) {
-      $pdo->prepare("UPDATE items SET status='donated', donation_pickup_location=?, donation_availability=?, donated_at=?, updated_at=? WHERE id=? AND status='active'")
+      $pdo->prepare("UPDATE fooditems SET food_status='donated', donation_pickup_location=?, donation_availability=?, donated_at=?, updated_at=? WHERE food_id=? AND food_status='active'")
           ->execute([$loc,$av,NOW(),NOW(),(int)$id]);
-      $pdo->prepare("INSERT INTO donations (item_id,pickup_location,availability,status,created_at) VALUES (?,?,?,?,?)")
+      $pdo->prepare("INSERT INTO donations (food_item_id,pickup_location,availability,donation_status,created_at) VALUES (?,?,?,?,?)")
           ->execute([(int)$id,$loc,$av,'open',NOW()]);
     }
     $pdo->commit(); JOK();
