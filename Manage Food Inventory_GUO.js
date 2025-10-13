@@ -1,7 +1,7 @@
 /* =================== SavePlate – Frontend JS (PHP API) =================== */
 /* 1) 修改为你的目录名（绝对路径，避免 404） */
 const BASE_PATH = '/saveplate-api';
-const API_BASE = `${BASE_PATH}/api/api.php`;
+const API_BASE  = `${BASE_PATH}/api/api.php`;
 
 /* 2) API helper */
 async function api(action, method='GET', body=null, params=null){
@@ -148,9 +148,9 @@ function renderDonationList(){
       <td>${escapeHtml(item.name)} <span style="color:#7F8C8D; font-size:12px; margin-left:6px;">#${item.barcode || '-'}</span></td>
       <td>${item.quantity}</td>
       <td>${item.expiry_date}</td>
-      <td>${item.category}</td> <!-- hidden by CSS -->
-      <td>${escapeHtml(item.storage||'')}</td> <!-- hidden by CSS -->
-      <td>${escapeHtml(item.notes||'')}</td>   <!-- hidden by CSS -->
+      <td>${item.category}</td> <!-- 如你的表头无此列，可在HTML去掉；不影响功能 -->
+      <td>${escapeHtml(item.storage||'')}</td>
+      <td>${escapeHtml(item.notes||'')}</td>
       <td>${escapeHtml(item.donation_pickup_location || '')}</td>
       <td>${escapeHtml(item.donation_availability || '')}</td>
       <td>
@@ -310,10 +310,10 @@ batchDonateBtn?.addEventListener('click', async ()=>{
   catch{ showToast('Batch donation failed.','error'); }
 });
 
-/* 15) Barcode Add */
+/* 15) Barcode Add — 两个8位演示码已预置 */
 const KNOWN_BARCODES = {
-  '9555555555555': { name:'Mackerel Can', category:'Meat', storage:'Pantry', defaultDays:365 },
-  '9550000123456': { name:'Frozen Dumplings', category:'Grains', storage:'Freezer', defaultDays:90 },
+  '12345670': { name:'UHT Milk',         category:'Dairy',   storage:'Fridge',  defaultDays:7  },
+  '87654325': { name:'Frozen Dumplings', category:'Grains',  storage:'Freezer', defaultDays:90 }
 };
 scanBtn.addEventListener('click', async ()=>{
   const code = prompt('Enter barcode number:',''); if(code===null || code.trim()==='') return;
