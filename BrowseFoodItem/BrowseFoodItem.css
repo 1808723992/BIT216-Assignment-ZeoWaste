@@ -1,0 +1,351 @@
+/* ========== ZeoWaste: BrowseFoodItem.css (Clean Version) ========== */
+
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  background: linear-gradient(135deg, #f6fff8, #e8f5e9);
+  color: #333;
+}
+
+/* 主体结构 */
+.browse {
+  padding: 60px 60px;
+  max-width: 1200px;
+  margin: auto;
+}
+.browse h2 {
+  text-align: center;
+  color: #0f9d58;
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.subtitle {
+  text-align: center;
+  color: #2e7d32;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 35px;
+}
+
+/* ===== Mint UI for Filters (drop-in) ===== */
+:root{
+  --mint-50:#f4fbf6;   /* 最浅底色 */
+  --mint-100:#e9f7ef;  /* 容器/控件底色 */
+  --mint-200:#cfead6;  /* 描边 */
+  --mint-300:#b9e5c5;  /* 聚焦光圈 */
+  --mint-500:#34a853;  /* 主题绿（与你站一致） */
+  --mint-700:#2e7d32;  /* 深绿（文字/图标） */
+}
+
+/* 筛选容器：浅绿底 + 细描边 + 轻阴影 */
+.filters{
+  display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+  background: linear-gradient(180deg, var(--mint-50), #ffffff);
+  border:1px solid var(--mint-200);
+  border-radius:16px;
+  padding:16px 20px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+}
+
+/* 让组在获得焦点时出现浅绿高亮边（类似右图的“被选中边框”） */
+.filter-group{display:flex; gap:12px; align-items:center;}
+.filter-group:focus-within{
+  outline: 3px solid var(--mint-300);
+  outline-offset: 2px;
+  border-radius:14px;
+}
+
+/* 输入框与下拉：浅绿底 + 圆角胶囊边框 + 平滑过渡 */
+.filters input[type="text"],
+.filters select{
+  appearance:none;
+  background: var(--mint-100);
+  border:2px solid var(--mint-200);
+  color:#1b3721;
+  padding:10px 14px;
+  border-radius:12px;
+  font-size:.95rem;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.filters input[type="text"]:focus,
+.filters select:focus{
+  border-color: var(--mint-500);
+  box-shadow:0 0 0 4px var(--mint-300);
+  background:#fff;
+}
+
+/* 搜索框的放大镜图标与左内边距 */
+#searchBox{
+  padding-left:36px; /* 给图标留空间 */
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\
+<path fill='%232e7d32' d='M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 9.5 16a6.47 6.47 0 0 0 4.23-1.57l.27.28v.79l5 5L20.5 19l-5-5zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z'/>\
+</svg>");
+  background-repeat:no-repeat;
+  background-size:18px 18px;
+  background-position:10px 50%;
+}
+#searchBox::placeholder{ color:#5aa56a; }
+
+/* 复选框：系统级绿色勾选 + 绿色文字 */
+.checkbox-group label{
+  display:inline-flex; align-items:center; gap:8px;
+  color: var(--mint-700); font-weight:600;
+}
+.checkbox-group input[type="checkbox"]{
+  width:16px; height:16px;
+  accent-color: var(--mint-700); /* 现代浏览器原生着色 */
+}
+
+/* “Clear All”：改为浅绿文字+左侧小叉，且排在最左侧 */
+.btn-clear{
+  background:transparent;
+  border:1px solid transparent;
+  color: var(--mint-700);
+  font-weight:700;
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  transition: background .15s ease, border-color .15s ease;
+  order:-1;              /* ← 把它放到最左侧 */
+}
+.btn-clear::before{ content:"✕"; margin-right:6px; }
+.btn-clear:hover{
+  background: var(--mint-100);
+  border-color: var(--mint-200);
+}
+
+/* 可选：下拉“胶囊”视觉更强（接近右图的按钮感） */
+.filters select{
+  border-radius:14px;
+  font-weight:700;
+  color:#165a23;
+}
+
+/* 卡片布局 */
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+  margin-top: 40px;
+}
+.food-card {
+  background: #fff;
+  border-radius: 22px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  position: relative;
+  transition: all 0.3s ease;
+}
+.food-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* 分类文字 */
+.food-card .category {
+  color: #388e3c;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+/* 食物标题 */
+.food-card h3 {
+  color: #0f9d58;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 5px 0 10px 0;
+}
+
+/* 收藏按钮 */
+.bookmark-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: #bbb;
+  transition: color 0.2s ease;
+}
+.bookmark-btn.active,
+.bookmark-btn:hover {
+  color: #ff6600;
+}
+
+/* 状态标签 */
+.expiry-tag {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 14px;
+  padding: 4px 10px;
+  margin: 3px 4px;
+  background: #fff5cc;
+  color: #8a6d00;
+}
+.tag-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
+.expiry-tag.fresh {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.expiry-tag.soon {
+  background: #ffe0b2;
+  color: #b36b00;
+}
+.expiry-tag.donation {
+  background: #e0e7ff;
+  color: #3f51b5;
+}
+
+/* 按钮样式 */
+.btn-primary {
+  margin-top: 12px;
+  background: #0f9d58;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+.btn-primary:hover {
+  background: #0d8049;
+}
+
+/* 弹窗模糊玻璃背景 */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(220, 255, 230, 0.25));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* 弹窗内容 */
+.modal-content {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  position: relative;
+  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(6px);
+}
+
+/* 弹窗关闭按钮 */
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #777;
+  transition: 0.3s;
+}
+.close-btn:hover {
+  color: #000;
+  transform: scale(1.15);
+}
+
+/* 弹窗按钮组 */
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.btn-modal {
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.btn-modal.used {
+  background: #1e2a38;
+}
+.btn-modal.meal {
+  background: #1976d2;
+}
+.btn-modal.donate {
+  background: #ff6600;
+}
+
+/* 弹窗详情 */
+.modal-details {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  color: #333;
+}
+.modal-details strong {
+  color: #0f9d58;
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* --- Ensure card uses column flex so bottom actions stick --- */
+.food-card{
+  display:flex;
+  flex-direction:column;
+}
+
+/* Push the main action button to the bottom of the card */
+.food-card .btn-primary{
+  margin-top:auto; /* consume remaining space above, stick to bottom */
+  align-self:center; /* keep centered like before */
+}
+
+
+/* === Compact card adjustments to fit more items on screen === */
+.browse{
+  max-width: 1320px; /* allow a bit wider layout on desktop */
+}
+
+.food-grid{ gap:18px; }
+
+.food-card{
+  padding:18px;
+  border-radius:18px;
+  gap:6px;           /* reduce internal spacing */
+  min-height: 280px; /* keep a tidy, shorter card */
+}
+
+/* tighten text spacing */
+.food-card p{ margin:6px 0; color:#4a4a4a; font-size:0.95rem; }
+
+/* slightly smaller icon to reduce vertical height */
+.food-icon{ width:56px; height:56px; font-size:34px; margin-bottom:8px; }
+
+/* smaller heading and category */
+.food-card h3{ font-size:1.1rem; margin:4px 0 8px; }
+.food-card .category{ font-size:0.9rem; margin-bottom:2px; }
+
+/* slimmer tags */
+.expiry-tag{ font-size:0.78rem; padding:3px 8px; margin:2px 4px; border-radius:12px; }
+
+/* keep action button glued to bottom with comfortable spacing */
+.food-card .btn-primary{ margin-top:auto; padding:9px 16px; border-radius:7px; }
