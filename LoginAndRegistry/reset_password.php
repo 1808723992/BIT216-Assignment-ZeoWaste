@@ -17,9 +17,9 @@ ini_set('display_errors', 1);
 // ✅ PHPMailer setup
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-require 'phpmailer/Exception.php';
-require 'phpmailer/PHPMailer.php';
-require 'phpmailer/SMTP.php';
+require '../phpmailer/Exception.php';
+require '../phpmailer/PHPMailer.php';
+require '../phpmailer/SMTP.php';
 
 // ✅ Set response type to JSON
 header('Content-Type: application/json');

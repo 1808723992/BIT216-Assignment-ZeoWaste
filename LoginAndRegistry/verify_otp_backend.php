@@ -28,7 +28,7 @@ if ($result->num_rows === 1) {
         $update->bind_param("s", $email);
         $update->execute();
 
-        echo "<script>alert('✅ OTP verified! Account activated.'); window.location.href='sign_in.html';</script>";
+        echo "<script>alert('✅ OTP verified! Account activated.'); window.location.href='../logined_homepage.php';</script>";
     } else {
         echo "<script>alert('❌ Invalid or expired OTP. Please try again.'); window.history.back();</script>";
     }

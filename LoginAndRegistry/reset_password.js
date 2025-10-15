@@ -25,7 +25,7 @@ function goToStep(step) {
     const email = document.getElementById("reset-email").value;
     alert("✅ Button clicked, now sending request...");
 
-    fetch("reset_password.php", {
+    fetch("/BIT216-Assignment-ZeoWaste/Main/LoginAndRegistry/reset_password.php", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: `step=send_otp&email=${encodeURIComponent(email)}`
@@ -49,7 +49,7 @@ function goToStep(step) {
     const email = document.getElementById("reset-email").value;
     const otp = document.getElementById("otp").value;
 
-    fetch("reset_password.php", {
+    fetch("/BIT216-Assignment-ZeoWaste/Main/LoginAndRegistry/reset_password.php", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: `step=verify_otp&email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`
@@ -90,7 +90,7 @@ document.getElementById("step3").addEventListener("submit", function (e) {
     return;
   }
 
-  fetch("reset_password.php", {
+  fetch("/BIT216-Assignment-ZeoWaste/Main/LoginAndRegistry/reset_password.php", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `step=update_password&email=${encodeURIComponent(email)}&new_password=${encodeURIComponent(newPassword)}`
@@ -99,7 +99,7 @@ document.getElementById("step3").addEventListener("submit", function (e) {
     .then(data => {
       if (data.success) {
         alert("✅ Password reset successful! You can now sign in with your new password.");
-        window.location.href = "sign_in.html"; // redirect to sign in page
+        window.location.href = "/BIT216-Assignment-ZeoWaste/Main/sign_in.html"; // redirect to sign in page
       } else {
         alert("❌ " + data.message);
       }
