@@ -10,9 +10,9 @@ ini_set('display_errors', 1);
 // ✅ Include PHPMailer (to send email)
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-require '../phpmailer/PHPMailer.php';
-require '../phpmailer/SMTP.php';
-require '../phpmailer/Exception.php';
+require 'phpmailer/PHPMailer.php';
+require 'phpmailer/SMTP.php';
+require 'phpmailer/Exception.php';
 
 // ✅ Connect to the database
 include 'connect.php';
@@ -95,10 +95,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // ✅ Redirect to OTP page with email
             echo "<script>alert('✅ Account stored! OTP sent to your email.'); 
-                  window.location.href='../otp_verification.html?email=$email';</script>";
+                  window.location.href='otp_verification.html?email=$email';</script>";
         } catch (Exception $e) {
             echo "<script>alert('❌ Account stored, but OTP email failed to send.'); 
-                  window.location.href='../otp_verification.html?email=$email';</script>";
+                  window.location.href='otp_verification.html?email=$email';</script>";
         }
     } else {
         echo "<script>alert('❌ Failed to create account. Try again.'); window.history.back();</script>";
