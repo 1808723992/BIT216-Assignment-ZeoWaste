@@ -36,3 +36,36 @@ if (dotsCircle) {
     dotsCircle.style.transform = `scale(${scale})`;
   });
 }
+
+// ✅ Password validation with smooth visual feedback
+const passwordInput = document.getElementById("password");
+const passwordHint = document.getElementById("password-hint");
+const form = document.querySelector(".register-form");
+
+passwordInput.addEventListener("input", () => {
+  const value = passwordInput.value;
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+
+  if (regex.test(value)) {
+    passwordHint.classList.remove("invalid");
+    passwordHint.classList.add("valid");
+    passwordHint.innerHTML = `<i class="fa fa-check-circle"></i> Strong password!`;
+  } else {
+    passwordHint.classList.remove("valid");
+    passwordHint.classList.add("invalid");
+    passwordHint.innerHTML = `<i class="fa fa-exclamation-circle"></i> Must include at least 8 characters, one uppercase, one lowercase, and one symbol.`;
+  }
+});
+
+// ✅ Prevent form submission if password invalid
+form.addEventListener("submit", (event) => {
+  const value = passwordInput.value;
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+
+  if (!regex.test(value)) {
+    event.preventDefault();
+    passwordHint.classList.add("invalid");
+    passwordHint.innerHTML = `<i class="fa fa-exclamation-circle"></i> Password does not meet the required strength.`;
+    alert("❌ Password does not meet the required strength!");
+  }
+});

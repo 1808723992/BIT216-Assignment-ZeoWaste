@@ -31,6 +31,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
+    // ✅ Validate password strength
+if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/', $password)) {
+    echo "<script>alert('❌ Password must have at least 8 characters, one uppercase, one lowercase, and one symbol.'); window.history.back();</script>";
+    exit();
+}
+
     // ✅ Check if email is already registered
     $check = $conn->prepare("SELECT * FROM users WHERE email = ?");
     $check->bind_param("s", $email);

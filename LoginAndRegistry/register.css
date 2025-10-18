@@ -173,3 +173,33 @@ button:hover {
   text-decoration: underline;
 }
 
+.password-hint {
+  background: #f9fafb;
+  border-left: 4px solid #16a34a;
+  border-radius: 6px;
+  font-size: 0.70rem;          /* slightly smaller text */
+  color: #555;
+  padding: 6px 10px;           /* reduced padding */
+  margin-top: 4px;             /* smaller space under input */
+  line-height: 1.2;            /* tighter line height */
+  display: flex;
+  align-items: center;
+  gap: 6px;                    /* smaller gap between icon & text */
+  transition: all 0.3s ease;
+  white-space: nowrap;         /* keep in one line */
+}
+
+
+/* invalid = red tone */
+.password-hint.invalid {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* valid = green tone */
+.password-hint.valid {
+  border-left-color: #16a34a;
+  background: #f0fdf4;
+  color: #166534;
+}
