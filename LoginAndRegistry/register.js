@@ -36,3 +36,38 @@ if (dotsCircle) {
     dotsCircle.style.transform = `scale(${scale})`;
   });
 }
+
+// === Password strength validation + submit guard ===
+const passwordInput = document.getElementById("password");
+const passwordHint = document.getElementById("password-hint");
+const form = document.querySelector(".register-form");
+
+// Defensive guard: run only if the elements exist on this page
+if (passwordInput && passwordHint && form) {
+  const strengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+
+  // Live feedback while typing
+  passwordInput.addEventListener("input", () => {
+    const value = passwordInput.value;
+    if (strengthRegex.test(value)) {
+      passwordHint.classList.remove("invalid");
+      passwordHint.classList.add("valid");
+      passwordHint.innerHTML = `<i class="fa fa-check-circle"></i> Strong password!`;
+    } else {
+      passwordHint.classList.remove("valid");
+      passwordHint.classList.add("invalid");
+      passwordHint.innerHTML = `<i class="fa fa-exclamation-circle"></i> Include at least 8 characters, one uppercase, lowercase, and symbol.`;
+    }
+  });
+
+  // Block submission if weak
+  form.addEventListener("submit", (e) => {
+    const value = passwordInput.value;
+    if (!strengthRegex.test(value)) {
+      e.preventDefault();
+      passwordHint.classList.add("invalid");
+      passwordHint.innerHTML = `<i class="fa fa-exclamation-circle"></i> Password does not meet the required strength.`;
+      alert("❌ Password does not meet the required strength!");
+    }
+  });
+}
