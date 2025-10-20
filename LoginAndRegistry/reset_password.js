@@ -106,3 +106,38 @@ document.getElementById("step3").addEventListener("submit", function (e) {
     })
     .catch(() => alert("❌ Server error while resetting password."));
 });
+
+// =============================================
+// Password strength validation (Step 3)
+// =============================================
+const newPasswordInput = document.getElementById("new-password");
+const passwordHint = document.getElementById("password-hint");
+const step3Form = document.getElementById("step3");
+
+if (newPasswordInput && passwordHint && step3Form) {
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+
+  // live feedback
+  newPasswordInput.addEventListener("input", () => {
+    const value = newPasswordInput.value;
+    if (regex.test(value)) {
+      passwordHint.classList.remove("invalid");
+      passwordHint.classList.add("valid");
+      passwordHint.innerHTML = `<i class="fa fa-check-circle"></i> Strong password!`;
+    } else {
+      passwordHint.classList.remove("valid");
+      passwordHint.classList.add("invalid");
+      passwordHint.innerHTML = `<i class="fa fa-exclamation-circle"></i> Include at least 8 characters, one uppercase, lowercase, and symbol.`;
+    }
+  });
+
+  // block weak password before submission
+  step3Form.addEventListener("submit", (e) => {
+    if (!regex.test(newPasswordInput.value)) {
+      e.preventDefault();
+      passwordHint.classList.add("invalid");
+      passwordHint.innerHTML = `<i class="fa fa-exclamation-circle"></i> Password does not meet strength requirements.`;
+      alert("❌ Password must include uppercase, lowercase, symbol, and at least 8 characters!");
+    }
+  });
+}

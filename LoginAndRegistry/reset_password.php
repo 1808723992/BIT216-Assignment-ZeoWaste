@@ -141,6 +141,12 @@ elseif ($step === 'update_password') {
     $email       = trim($_POST['email']);
     $newPassword = $_POST['new_password'];
 
+    // ✅ Validate password strength
+    if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/', $newPassword)) {
+        echo json_encode(['success' => false, 'message' => 'Password too weak. Must include uppercase, lowercase, symbol, and 8+ characters.']);
+        exit;
+}
+
     // Hash the new password
     $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
 
