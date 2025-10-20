@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SavePlate - Manage Food Inventory</title>
+  <link rel="stylesheet" href="Homepage/nav.css" />
+  <link rel="stylesheet" href="ManageInventory/Manage Food Inventory_GUO.css" />
+  <!-- Task 1: Hide Category/Storage/Notes columns in Donation List via HTML-only style -->
+  <style>
+    #donationTable th:nth-child(4),
+    #donationTable td:nth-child(4),
+    #donationTable th:nth-child(5),
+    #donationTable td:nth-child(5),
+    #donationTable th:nth-child(6),
+    #donationTable td:nth-child(6) { display: none; }
+  </style>
+</head>
+
+<body>
+  <script src="Homepage/load_nav.js"></script>
+  <header>
+    <h1> SavePlate – Manage Food Inventory</h1>
+  </header>
+
+  <!-- ===== Add Food Item Form ===== -->
+  <section class="form-section">
+    <h2>Add Food Item</h2>
+    <form id="foodForm">
+      <label for="itemName">Item Name *</label>
+      <input type="text" id="itemName" placeholder="Enter item name" required>
+
+      <label for="quantity">Quantity *</label>
+      <input type="text" id="quantity" placeholder="Enter quantity (e.g., 3, 2kg, 1 bottle)" required>
+
+      <label for="expiryDate">Expiry Date *</label>
+      <input type="date" id="expiryDate" required>
+
+      <label for="category">Category *</label>
+      <select id="category" required>
+        <option value="">Select Category</option>
+        <option value="Dairy">Dairy</option>
+        <option value="Vegetable">Vegetable</option>
+        <option value="Bakery">Bakery</option>
+        <option value="Grains">Grains</option>
+        <option value="Meat">Meat</option>
+        <option value="Fruits">Fruits</option>
+      </select>
+
+      <label for="storage">Storage Location *</label>
+      <select id="storage" required>
+        <option value="">Select Storage</option>
+        <option value="Fridge">Fridge</option>
+        <option value="Freezer">Freezer</option>
+        <option value="Pantry">Pantry</option>
+      </select>
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="Additional notes"></textarea>
+
+      <button type="submit" id="addBtn">Add Item</button>
+      <button type="button" id="scanBtn">Add via Barcode</button>
+    </form>
+  </section>
+
+  <!-- ===== Search & Filter Panel ===== -->
+  <section class="filter-section">
+    <h2>Search & Filter</h2>
+    <div class="filters">
+      <input type="text" id="searchInput" placeholder="Search by name or notes">
+      <select id="filterCategory">
+        <option value="">All Categories</option>
+        <option value="Dairy">Dairy</option>
+        <option value="Vegetable">Vegetable</option>
+        <option value="Bakery">Bakery</option>
+        <option value="Grains">Grains</option>
+        <option value="Meat">Meat</option>
+        <option value="Fruits">Fruits</option>
+      </select>
+      <select id="filterStorage">
+        <option value="">All Storage</option>
+        <option value="Fridge">Fridge</option>
+        <option value="Freezer">Freezer</option>
+        <option value="Pantry">Pantry</option>
+      </select>
+      <select id="filterExpiry">
+        <option value="">All Expiry</option>
+        <option value="near">Near Expiry (≤3 days)</option>
+        <option value="expired">Expired</option>
+      </select>
+      <button id="clearFilters">Clear Filters</button>
+    </div>
+    <p class="helper">Note: "My Inventory" shows active items only. Donated items appear below in the Donation List.</p>
+  </section>
+
+  <!-- ===== Inventory Table (Active only) ===== -->
+  <section class="inventory-section">
+    <h2>My Inventory</h2>
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="selectAll"></th>
+          <th>Name / Barcode</th>
+          <th>Qty</th>
+          <th>Expiry</th>
+          <th>Category</th>
+          <th>Storage</th>
+          <th>Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody><!-- Dynamic rows --></tbody>
+    </table>
+  </section>
+
+  <!-- ===== Batch Actions ===== -->
+  <section class="batch-section">
+    <h2>Batch Actions</h2>
+    <div class="batch-buttons">
+      <button id="batchEdit">Edit Storage</button>
+      <button id="batchUsed">Mark as Used</button>
+      <button id="batchDelete">Delete</button>
+      <button id="batchDonate">Convert to Donation</button>
+    </div>
+  </section>
+
+  <!-- ===== Donation List (Filtered view) ===== -->
+  <section class="inventory-section">
+    <h2>Donation List</h2>
+    <table id="donationTable">
+      <thead>
+        <tr>
+          <th>Name / Barcode</th>
+          <th>Qty</th>
+          <th>Expiry</th>
+          <th>Category</th>   <!-- hidden by style -->
+          <th>Storage</th>    <!-- hidden by style -->
+          <th>Notes</th>      <!-- hidden by style -->
+          <th>Pickup Location</th>
+          <th>Availability</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody><!-- Dynamic donated rows --></tbody>
+    </table>
+  </section>
+
+  <!-- ===== Modals ===== -->
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Edit Food Item</h3>
+      <form id="editForm">
+        <input type="hidden" id="editIndex">
+
+        <label>Item Name *</label>
+        <input type="text" id="editName" required>
+
+        <label>Quantity *</label>
+        <input type="text" id="editQuantity" required>
+
+        <label>Expiry Date *</label>
+        <input type="date" id="editExpiry" required>
+
+        <label>Category *</label>
+        <select id="editCategory" required>
+          <option value="Dairy">Dairy</option>
+          <option value="Vegetable">Vegetable</option>
+          <option value="Bakery">Bakery</option>
+          <option value="Grains">Grains</option>
+          <option value="Meat">Meat</option>
+          <option value="Fruits">Fruits</option>
+        </select>
+
+        <label>Storage Location *</label>
+        <select id="editStorage" required>
+          <option value="Fridge">Fridge</option>
+          <option value="Freezer">Freezer</option>
+          <option value="Pantry">Pantry</option>
+        </select>
+
+        <label>Notes</label>
+        <textarea id="editNotes"></textarea>
+
+        <div class="modal-actions">
+          <button type="submit">Save Changes</button>
+          <button type="button" class="cancelBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Donation Modal -->
+  <div id="donationModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Convert to Donation</h3>
+      <form id="donationForm">
+        <input type="hidden" id="donationIndex">
+        <label>Pickup Location *</label>
+        <input type="text" id="pickupLocation" required>
+
+        <label>Availability Time *</label>
+        <input type="text" id="availability" placeholder="e.g. 10 AM – 5 PM" required>
+
+        <label>Additional Notes</label>
+        <textarea id="donationNotes"></textarea>
+
+        <div class="modal-actions">
+          <button type="submit">Confirm Donation</button>
+          <button type="button" class="cancelBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Notification Area ===== -->
+  <div id="notification" class="notification hidden"></div>
+
+  <script src="ManageInventory/Manage Food Inventory_GUO.js"></script>
+</body>
+<div id="footer-placeholder"></div>
+<footer>
+    <p>&copy; 2025 ZeoWaste. All Rights Reserved.</p>
+    <div class="footer-links">
+      <a href="#">About Us</a>
+      <a href="#">Contact</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+</footer>
+
+</html>
