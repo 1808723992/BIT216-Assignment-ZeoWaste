@@ -1,1 +1,162 @@
-hi41
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Weekly Meal Planner</title>
+	<link rel="stylesheet" href="WeelyMealPlanner/meal_planner.css">
+</head>
+<body>
+	<div class="main">
+		<div class="header">
+			<h1>Weekly Meal Planner</h1>
+			<span class="period">• Prev</span>
+			<span class="spacer"></span>
+			<span class="period">2025/10/27 – 2025/11/02</span>
+			<button class="btn primary">Confirm Weekly Plan</button>
+		</div>
+
+		<div class="grid-wrap">
+			<div class="board">
+				<div class="board-head">
+					<span class="period">周视图</span>
+				</div>
+				<table class="table">
+					<thead>
+						<tr>
+							<th class="slot-label"></th>
+							<th class="day-head">
+								<div class="day-title"><span class="dow">周一</span><span class="date">2025-10-27</span></div>
+							</th>
+							<th class="day-head">
+								<div class="day-title"><span class="dow">周二</span><span class="date">2025-10-28</span></div>
+							</th>
+							<th class="day-head">
+								<div class="day-title"><span class="dow">周三</span><span class="date">2025-10-29</span></div>
+							</th>
+							<th class="day-head">
+								<div class="day-title"><span class="dow">周四</span><span class="date">2025-10-30</span></div>
+							</th>
+							<th class="day-head">
+								<div class="day-title"><span class="dow">周五</span><span class="date">2025-10-31</span></div>
+							</th>
+							<th class="day-head">
+								<div class="day-title"><span class="dow">周六</span><span class="date">2025-11-01</span></div>
+							</th>
+							<th class="day-head">
+								<div class="day-title"><span class="dow">周日</span><span class="date">2025-11-02</span></div>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td class="slot-label">Breakfast</td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+						</tr>
+						<tr>
+							<td class="slot-label">Lunch</td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+						</tr>
+						<tr>
+							<td class="slot-label">Dinner</td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+						</tr>
+						<tr>
+							<td class="slot-label">Snacks</td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+							<td class="cell"><span class="add-link">+ Add</span></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<aside class="sidebar">
+				<h3>Recipes</h3>
+				<div class="search">
+					<input id="recipe-search" type="text" placeholder="Search recipe...">
+				</div>
+				<div class="section-title">Ordered by match: Fully － Partial － Not</div>
+				<div class="recipe-list">
+					<div class="recipe">
+						<div class="tags">
+							<span>DINNER</span>
+							<span class="badge success">FULLY</span>
+						</div>
+						<div>10 ingredients</div>
+						<div class="actions">
+							<button class="btn ghost" data-action="details">Details</button>
+							<button class="btn primary" data-action="add-to-plan">Add to Plan</button>
+						</div>
+					</div>
+
+					<div class="recipe">
+						<div class="tags">
+							<span>BREAKFAST</span>
+							<span class="badge success">FULLY</span>
+						</div>
+						<div>4 ingredients</div>
+						<div class="actions">
+							<button class="btn ghost" data-action="details">Details</button>
+							<button class="btn primary" data-action="add-to-plan">Add to Plan</button>
+						</div>
+					</div>
+
+					<div class="recipe">
+						<div class="tags">
+							<span>SNACKS</span>
+							<span class="badge danger">NOT</span>
+						</div>
+						<div>5 ingredients</div>
+						<div class="actions">
+							<button class="btn ghost" data-action="details">Details</button>
+							<button class="btn primary" data-action="add-to-plan">Add to Plan</button>
+						</div>
+					</div>
+
+					<div class="recipe">
+						<div class="tags">
+							<span>LUNCH</span>
+							<span class="badge warn">PARTIAL</span>
+						</div>
+						<div>7 ingredients</div>
+						<div class="actions">
+							<button class="btn ghost" data-action="details">Details</button>
+							<button class="btn primary" data-action="add-to-plan">Add to Plan</button>
+						</div>
+					</div>
+				</div>
+			</aside>
+		</div>
+
+		<div class="shopping">
+			<h3>Shopping List</h3>
+			<div class="period">No missing items. Confirm plan to generate.</div>
+		</div>
+	</div>
+
+	<script src="WeelyMealPlanner/meal_planner.js"></script>
+</body>
+</html>
