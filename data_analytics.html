@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Track My Impact</title>
+    <link rel="stylesheet" href="data_analytics/data_analytics.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <header class="page-header">
+        <h1>Food Analytics</h1>
+        <p class="subtitle">Monitor your food usage and waste reduction progress</p>
+    </header>
+
+    <section class="filters">
+        <div class="filter-group">
+            <span class="icon inline">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v3M16 2v3M4 9h16M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" stroke="#1f7a45" stroke-width="2" stroke-linecap="round"/></svg>
+            </span>
+            <label for="presetRange">Time Period:</label>
+            <select id="presetRange">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="custom">Custom</option>
+            </select>
+            <input type="date" id="fromDate" class="hidden" />
+            <input type="date" id="toDate" class="hidden" />
+            <button id="applyFilter" class="btn">Apply</button>
+        </div>
+        <div class="events-indicator">
+            <span id="eventsCount">0 events recorded</span>
+        </div>
+    </section>
+
+    <section class="summary-cards">
+        <div class="card" id="card-used">
+            <div class="card-icon green">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="#1a7f50" stroke-width="2"/><path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#1a7f50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="card-title">Used Before Expiry</div>
+            <div class="card-value" id="usedTotal">0</div>
+            <div class="card-note" id="usedNote">—</div>
+        </div>
+        <div class="card" id="card-donated">
+            <div class="card-icon blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10Z" stroke="#2b7de9" stroke-width="2"/></svg>
+            </div>
+            <div class="card-title">Donated</div>
+            <div class="card-value" id="donatedTotal">0</div>
+            <div class="card-note" id="donatedNote">—</div>
+        </div>
+        <div class="card" id="card-discarded">
+            <div class="card-icon orange">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M9 6V4h6v2M6 6l1 13a2 2 0 0 0 2 1h6a2 2 0 0 0 2-1l1-13" stroke="#ff922b" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="card-title">Discarded / Expired</div>
+            <div class="card-value" id="discardedTotal">0</div>
+            <div class="card-note" id="discardedNote">—</div>
+        </div>
+        <div class="card" id="card-inventory">
+            <div class="card-icon purple">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3l9 5-9 5-9-5 9-5Zm-9 8l9 5 9-5" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="card-title">Current Inventory</div>
+            <div class="card-value" id="inventoryTotal">0</div>
+            <div class="card-note" id="inventoryNote">—</div>
+        </div>
+    </section>
+
+    <section class="charts">
+        <div class="chart-card">
+            <div class="chart-header">
+                <span class="icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 7v6l4 2" stroke="#1f7a45" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#1f7a45" stroke-width="2"/></svg>
+                </span>
+                <h3>Activity Trend</h3>
+                <p>Track your actions over time</p>
+            </div>
+            <canvas id="trendChart" height="120"></canvas>
+            <div class="empty" id="trendEmpty">No events in this period.</div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <span class="icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 2a1 1 0 0 1 2 0v9h9a1 1 0 0 1 0 2h-9v9a1 1 0 0 1-2 0v-9H2a1 1 0 0 1 0-2h9V2Z" fill="#1f7a45"/></svg>
+                </span>
+                <h3>Category Breakdown</h3>
+                <p>Actions by food category</p>
+            </div>
+            <canvas id="categoryBar" height="120"></canvas>
+            <div class="empty" id="categoryEmpty">No category data in this period.</div>
+        </div>
+    </section>
+
+    <section class="charts single">
+        <div class="chart-card">
+            <div class="chart-header">
+                <span class="icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3a9 9 0 1 0 9 9h-9V3Z" stroke="#1f7a45" stroke-width="2"/></svg>
+                </span>
+                <h3>Category Distribution</h3>
+                <p>Total actions across all categories</p>
+            </div>
+            <canvas id="categoryPie" height="160"></canvas>
+            <div class="empty" id="pieEmpty">No distribution data in this period.</div>
+        </div>
+    </section>
+
+    <script src="data_analytics/data_analytics.js"></script>
+</body>
+</html>
+
