@@ -136,3 +136,5 @@ body {
 .period.link { cursor: pointer; color: var(--brand); }
 .period.link:hover { color: var(--brand-600); }
 .period.dot::before, .period.dot-right::after { background: var(--brand); }
+
+.title-brand { color: var(--brand); }
