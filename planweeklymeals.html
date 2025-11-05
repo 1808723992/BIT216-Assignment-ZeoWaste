@@ -9,11 +9,15 @@
 <body>
 	<div class="main">
 		<div class="header">
-			<h1>Weekly Meal Planner</h1>
-			<span class="period">• Prev</span>
-			<span class="spacer"></span>
-			<span class="period">2025/10/27 – 2025/11/02</span>
-			<button class="btn primary">Confirm Weekly Plan</button>
+			<div class="header-left">
+				<h1>Weekly Meal Planner</h1>
+			</div>
+			<div class="header-right">
+				<span id="prev-week" class="period link dot">Prev</span>
+				<span id="period-text" class="period">2025/10/27 – 2025/11/02</span>
+				<span id="next-week" class="period link dot-right">Next</span>
+				<button class="btn primary">Confirm Weekly Plan</button>
+			</div>
 		</div>
 
 		<div class="grid-wrap">
@@ -26,25 +30,25 @@
 						<tr>
 							<th class="slot-label"></th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周一</span><span class="date">2025-10-27</span></div>
+								<div class="day-title"><span class="dow">周一</span><span class="date" data-day-offset="0">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周二</span><span class="date">2025-10-28</span></div>
+								<div class="day-title"><span class="dow">周二</span><span class="date" data-day-offset="1">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周三</span><span class="date">2025-10-29</span></div>
+								<div class="day-title"><span class="dow">周三</span><span class="date" data-day-offset="2">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周四</span><span class="date">2025-10-30</span></div>
+								<div class="day-title"><span class="dow">周四</span><span class="date" data-day-offset="3">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周五</span><span class="date">2025-10-31</span></div>
+								<div class="day-title"><span class="dow">周五</span><span class="date" data-day-offset="4">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周六</span><span class="date">2025-11-01</span></div>
+								<div class="day-title"><span class="dow">周六</span><span class="date" data-day-offset="5">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周日</span><span class="date">2025-11-02</span></div>
+								<div class="day-title"><span class="dow">周日</span><span class="date" data-day-offset="6">—</span></div>
 							</th>
 						</tr>
 					</thead>
