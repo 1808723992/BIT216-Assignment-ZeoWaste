@@ -161,6 +161,78 @@
 		</div>
 	</div>
 
+	<!-- Details Modal -->
+	<div id="meal-modal" class="mm-overlay" aria-hidden="true">
+		<div class="mm-dialog" role="dialog" aria-modal="true">
+			<button class="mm-close" aria-label="Close">×</button>
+			<div class="mm-header">
+				<h2 id="mm-title">Spaghetti Bolognese</h2>
+				<div class="mm-tags">
+					<span class="badge success" id="mm-type">DINNER</span>
+					<span class="badge warn" id="mm-match">PARTIAL</span>
+				</div>
+			</div>
+			<div class="mm-section">
+				<h3>Ingredients (required vs. available)</h3>
+				<table class="mm-table">
+					<thead>
+						<tr>
+							<th>Ingredient</th>
+							<th>Required</th>
+							<th>Available</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody id="mm-ingredients"></tbody>
+				</table>
+			</div>
+			<div class="mm-grid">
+				<div class="mm-section">
+					<h3>Nutrition Info (per serving)</h3>
+					<div class="mm-nutri">
+						<div><span>Calories:</span> <strong id="mm-calories">450 kcal</strong></div>
+						<div><span>Protein:</span> <strong id="mm-protein">25 g</strong></div>
+						<div><span>Fat:</span> <strong id="mm-fat">15 g</strong></div>
+						<div><span>Carbs:</span> <strong id="mm-carbs">52 g</strong></div>
+					</div>
+				</div>
+				<div class="mm-section">
+					<h3>Add to Meal Planner</h3>
+					<div class="mm-form">
+						<label>
+							<span>Date</span>
+							<input type="date" id="mm-date">
+						</label>
+						<label>
+							<span>Meal Slot</span>
+							<select id="mm-slot">
+								<option>Breakfast</option>
+								<option selected>Lunch</option>
+								<option>Dinner</option>
+								<option>Snacks</option>
+							</select>
+						</label>
+					</div>
+					<button class="btn primary" id="mm-add">Add</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Recipe Picker Modal -->
+	<div id="picker-modal" class="mm-overlay" aria-hidden="true">
+		<div class="mm-dialog picker" role="dialog" aria-modal="true">
+			<button class="mm-close" aria-label="Close">×</button>
+			<div class="mm-header">
+				<div>
+					<h2 style="margin-bottom:4px;">Select a Recipe</h2>
+					<div class="period">Choose a recipe to add to your meal plan.</div>
+				</div>
+			</div>
+			<div class="picker-list" id="picker-list"></div>
+		</div>
+	</div>
+
 	<script src="WeelyMealPlanner/meal_planner.js"></script>
 </body>
 </html>

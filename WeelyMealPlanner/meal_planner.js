@@ -19,7 +19,7 @@
 	function getMonday(date){
 		const d = new Date(date);
 		const day = d.getDay();
-		const diff = (day === 0 ? -6 : 1 - day); // 周一为 1，周日为 0
+		const diff = (day === 0 ? -6 : 1 - day);
 		d.setDate(d.getDate()+diff);
 		d.setHours(0,0,0,0);
 		return d;
@@ -34,6 +34,8 @@
 			d.setDate(d.getDate()+offset);
 			el.textContent = formatDate(d);
 		});
+		const dateInput = q('#mm-date');
+		if(dateInput){ dateInput.value = formatDate(start); }
 	}
 
 	function setupWeekSwitching(){
@@ -67,22 +69,129 @@
 		});
 	}
 
-	function setupAddButtons(){
-		qa('[data-action="add-to-plan"]').forEach(btn => {
-			btn.addEventListener('click', () => {
-				alert('占位交互：Add to Plan');
-			});
+	// ===== Details modal =====
+	function openModal(data){
+		const overlay = q('#meal-modal');
+		if(!overlay) return;
+		q('#mm-title').textContent = data.title;
+		q('#mm-type').textContent = data.type;
+		q('#mm-match').textContent = data.match;
+		q('#mm-calories').textContent = data.nutri.calories;
+		q('#mm-protein').textContent = data.nutri.protein;
+		q('#mm-fat').textContent = data.nutri.fat;
+		q('#mm-carbs').textContent = data.nutri.carbs;
+		const tbody = q('#mm-ingredients');
+		tbody.innerHTML = '';
+		data.ingredients.forEach(row => {
+			const tr = document.createElement('tr');
+			tr.innerHTML = `<td>${row.name}</td><td>${row.required}</td><td>${row.available}</td><td class="${row.status==='OK'?'ok':'miss'}">${row.status}</td>`;
+			tbody.appendChild(tr);
 		});
+		overlay.classList.add('show');
+		overlay.setAttribute('aria-hidden','false');
+	}
+
+	function closeModal(){
+		const overlay = q('#meal-modal');
+		if(overlay){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); }
+	}
+
+	function setupModal(){
+		const overlay = q('#meal-modal');
+		const closeBtn = q('.mm-close');
+		if(closeBtn){ closeBtn.addEventListener('click', closeModal); }
+		if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeModal(); }); }
+		document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
+		const addBtn = q('#mm-add');
+		if(addBtn){ addBtn.addEventListener('click', ()=>{ alert('占位交互：已添加到计划'); closeModal(); }); }
+	}
+
+	function setupDetailButtons(){
+		const sample = getSampleRecipe();
 		qa('[data-action="details"]').forEach(btn => {
-			btn.addEventListener('click', () => {
-				alert('占位交互：Details');
-			});
+			btn.addEventListener('click', () => openModal(sample));
+		});
+	}
+
+	function getSampleRecipe(){
+		return {
+			title: 'Spaghetti Bolognese',
+			type: 'DINNER',
+			match: 'PARTIAL',
+			nutri: { calories: '450 kcal', protein: '25 g', fat: '15 g', carbs: '52 g' },
+			ingredients: [
+				{ name: 'Spaghetti', required: '200 g', available: '200 g', status: 'OK' },
+				{ name: 'Ground Beef', required: '300 g', available: '150 g', status: 'Missing 150 g' },
+				{ name: 'Tomato Sauce', required: '2 cups', available: '2 cups', status: 'OK' },
+				{ name: 'Onion', required: '1', available: '1', status: 'OK' },
+				{ name: 'Garlic', required: '3 cloves', available: '2 cloves', status: 'Missing 1 cloves' },
+			]
+		};
+	}
+
+	// ===== Recipe Picker =====
+	const sampleList = [
+		{ title:'Dinner • 8 ingredients', name:'Spaghetti Bolognese', type:'DINNER', match:'FULLY' },
+		{ title:'Lunch • 3 ingredients', name:'Greek Salad', type:'LUNCH', match:'PARTIAL' },
+		{ title:'Lunch • 4 ingredients', name:'Tuna Sandwich', type:'LUNCH', match:'PARTIAL' },
+		{ title:'Breakfast • 4 ingredients', name:'Cheese & Tomato Omelette', type:'BREAKFAST', match:'PARTIAL' },
+	];
+
+	function openPicker(){
+		const overlay = q('#picker-modal');
+		if(!overlay) return;
+		const list = q('#picker-list');
+		list.innerHTML = '';
+		sampleList.forEach((item, idx) => {
+			const row = document.createElement('div');
+			row.className = 'picker-row';
+			row.innerHTML = `
+				<div class="picker-info">
+					<div class="picker-title">${item.name}</div>
+					<div class="picker-sub"><strong>${item.type}</strong> · ${item.title.split('•')[1] || ''} <span class="badge">${item.match}</span></div>
+				</div>
+				<div class="picker-actions">
+					<button class="btn ghost" data-pick-details="${idx}">Details</button>
+					<button class="btn primary" data-pick-add="${idx}">Add to Plan</button>
+				</div>
+			`;
+			list.appendChild(row);
+		});
+		overlay.classList.add('show');
+		overlay.setAttribute('aria-hidden','false');
+		// bind row actions
+		qa('[data-pick-details]').forEach(btn => btn.addEventListener('click', () => {
+			closePicker();
+			openModal(getSampleRecipe());
+		}));
+		qa('[data-pick-add]').forEach(btn => btn.addEventListener('click', () => {
+			alert('占位交互：已将所选食谱添加到计划');
+			closePicker();
+		}));
+	}
+
+	function closePicker(){
+		const overlay = q('#picker-modal');
+		if(overlay){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); }
+	}
+
+	function setupPicker(){
+		const overlay = q('#picker-modal');
+		const closeBtn = overlay ? overlay.querySelector('.mm-close') : null;
+		if(closeBtn){ closeBtn.addEventListener('click', closePicker); }
+		if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closePicker(); }); }
+		document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePicker(); });
+		// triggers: sidebar Add to Plan + table +Add links
+		qa('[data-action="add-to-plan"], .add-link').forEach(el => {
+			el.addEventListener('click', openPicker);
 		});
 	}
 
 	document.addEventListener('DOMContentLoaded', () => {
 		setupWeekSwitching();
 		setupSearch();
-		setupAddButtons();
+		setupModal();
+		setupDetailButtons();
+		setupPicker();
 	});
 })();

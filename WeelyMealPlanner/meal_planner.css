@@ -46,9 +46,11 @@ body {
 	font-size: 34px;
 	font-weight: 800;
 	margin: 0;
-	color: var(--text);
+	color: inherit;
 	letter-spacing: 0.2px;
 }
+
+.header h1.title-brand { color:#0f9d58; }
 
 .period { color: var(--muted); font-size: 14px; }
 .period.dot { position: relative; padding-left: 14px; }
@@ -138,3 +140,61 @@ body {
 .period.dot::before, .period.dot-right::after { background: var(--brand); }
 
 .title-brand { color: var(--brand); }
+
+/* Details Modal */
+/* === Details Modal – Polished Design === */
+.mm-overlay{ position:fixed; inset:0; background:rgba(15,23,42,.36); display:none; align-items:flex-start; justify-content:center; overflow:auto; z-index:1000; }
+.mm-overlay.show{ display:flex; }
+.mm-dialog{ background:#fff; border:1px solid #eef0f3; border-radius:20px; margin:28px 16px; width:min(900px,96%); box-shadow:0 16px 48px rgba(2,6,23,.25); padding:22px 22px 26px; position:relative; }
+.mm-close{ position:absolute; top:12px; right:14px; width:34px; height:34px; border:none; background:#ffffff; border-radius:50%; font-size:22px; line-height:34px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.15); color:#111827; }
+.mm-close:hover{ background:#f3f4f6; }
+
+.mm-header{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:6px; }
+.mm-header h2{ margin:0; font-size:32px; font-weight:800; color:#111827; letter-spacing:.2px; }
+.mm-tags{ display:flex; gap:8px; align-items:center; }
+/* pill chips for tags */
+.mm-tags .badge{ height:26px; padding:0 10px; border-radius:999px; display:inline-flex; align-items:center; border:1px solid #e5e7eb; font-size:12px; font-weight:700; letter-spacing:.2px; }
+.mm-tags .badge.success{ background:var(--brand-50); color:var(--brand-600); border-color:#bbf7d0; }
+.mm-tags .badge.warn{ background:#fff7ed; color:#b45309; border-color:#fed7aa; }
+
+/* section cards */
+.mm-section{ background:linear-gradient(180deg,#ffffff, #fafafa); border:1px solid #e8eaee; border-radius:14px; padding:16px; margin-top:14px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+.mm-section h3{ margin:0 0 12px 0; font-size:16px; color:#0f172a; font-weight:800; }
+
+/* table */
+.mm-table{ width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:12px; }
+.mm-table thead th{ background:#f7f8fb; color:#4b5563; font-weight:700; font-size:14px; border-bottom:1px solid #e5e7eb; padding:12px; text-align:left; }
+.mm-table th:first-child{ border-top-left-radius:12px; }
+.mm-table th:last-child{ border-top-right-radius:12px; }
+.mm-table td{ padding:14px 12px; border-bottom:1px solid #eef0f3; }
+.mm-table tr:last-child td{ border-bottom:none; }
+.mm-table td.ok{ color:var(--brand-600); font-weight:700; }
+.mm-table td.miss{ color:#dc2626; font-weight:700; }
+
+/* nutrition + add grid */
+.mm-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+.mm-nutri{ display:grid; grid-template-columns:1fr 1fr; row-gap:10px; column-gap:18px; color:#111827; }
+.mm-nutri span{ color:#6b7280; margin-right:6px; }
+
+/* form */
+.mm-form{ display:flex; gap:12px; align-items:flex-end; margin-bottom:12px; }
+.mm-form label{ display:flex; flex-direction:column; gap:6px; font-size:14px; color:#6b7280; flex:1; }
+.mm-form input[type="date"], .mm-form select{ height:40px; border:1px solid var(--border); border-radius:10px; padding:0 12px; font-size:14px; }
+#mm-add.btn{ height:40px; border-radius:10px; font-weight:700; }
+
+@media (max-width: 780px){
+	.mm-header h2{ font-size:26px; }
+	.mm-grid{ grid-template-columns:1fr; }
+}
+
+/* === Recipe Picker Modal === */
+.mm-dialog.picker{ width:min(700px,96%); }
+.picker-list{ max-height:65vh; overflow:auto; padding:6px 2px 4px; display:flex; flex-direction:column; gap:12px; }
+.picker-row{ border:1px solid #e8eaee; border-radius:12px; padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#fff; }
+.picker-info{ display:flex; flex-direction:column; gap:6px; }
+.picker-title{ font-weight:800; color:#0f172a; }
+.picker-sub{ display:flex; align-items:center; gap:10px; color:#6b7280; font-size:14px; }
+.picker-sub .badge{ height:22px; padding:0 8px; border-radius:999px; font-size:11px; font-weight:700; border:1px solid #fed7aa; background:#fff7ed; color:#b45309; }
+.picker-actions{ display:flex; align-items:center; gap:10px; }
+.picker-actions .btn{ height:36px; padding:0 14px; border-radius:10px; font-weight:700; }
+.picker-actions .btn.ghost{ height:36px; }
