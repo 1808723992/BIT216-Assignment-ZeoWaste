@@ -275,6 +275,57 @@
 		</div>
 	</div>
 
+	<!-- Edit Recipe Modal -->
+	<div id="edit-modal" class="mm-overlay" aria-hidden="true">
+		<div class="mm-dialog" role="dialog" aria-modal="true">
+			<button class="mm-close" aria-label="Close">×</button>
+			<div class="mm-header">
+				<h2 id="edit-title">Edit Recipe</h2>
+			</div>
+			<div class="mm-section">
+				<div class="re-row">
+					<label class="re-label">Recipe Name</label>
+					<input type="text" id="em-name" class="re-input" placeholder="Recipe name">
+				</div>
+				<div class="re-row">
+					<label class="re-label">Category</label>
+					<select id="em-category" class="re-input">
+						<option>BREAKFAST</option>
+						<option selected>LUNCH</option>
+						<option>DINNER</option>
+						<option>SNACKS</option>
+					</select>
+				</div>
+				<div class="re-row">
+					<label class="re-label">Ingredients</label>
+					<div id="em-ing-lines" class="re-ing-lines">
+						<div class="re-ing-line">
+							<input type="text" class="re-input em-ing-name" placeholder="Ingredient name">
+							<input type="text" class="re-input small em-ing-amount" placeholder="Amount">
+							<button class="btn ghost em-remove-line" title="Remove" aria-label="Remove line">×</button>
+						</div>
+					</div>
+					<div class="re-ing-actions">
+						<button class="btn ghost" id="em-add-line">+ Add</button>
+					</div>
+				</div>
+				<div class="re-row">
+					<label class="re-label">Nutrition (per serving)</label>
+					<div class="re-grid4">
+						<input type="text" id="em-cal" class="re-input" placeholder="Cal"><span class="re-unit">kcal</span>
+						<input type="text" id="em-protein" class="re-input" placeholder="Protein"><span class="re-unit">g</span>
+						<input type="text" id="em-fat" class="re-input" placeholder="Fat"><span class="re-unit">g</span>
+						<input type="text" id="em-carbs" class="re-input" placeholder="Carbs"><span class="re-unit">g</span>
+					</div>
+				</div>
+				<div class="re-actions">
+					<button class="btn primary" id="em-save">Save</button>
+					<button class="btn ghost" id="em-cancel">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<script src="WeelyMealPlanner/meal_planner.js"></script>
 </body>
 </html>
