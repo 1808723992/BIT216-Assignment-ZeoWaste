@@ -2,6 +2,8 @@
 	const q = (s, r=document) => r.querySelector(s);
 	const qa = (s, r=document) => Array.from(r.querySelectorAll(s));
 
+	let editingRecipeId = null; // 标记当前是否在编辑
+
 	function formatDate(date){
 		const y = date.getFullYear();
 		const m = String(date.getMonth()+1).padStart(2,'0');
@@ -43,18 +45,8 @@
 		updateWeek(currentStart);
 		const prev = q('#prev-week');
 		const next = q('#next-week');
-		if(prev){
-			prev.addEventListener('click', () => {
-				currentStart.setDate(currentStart.getDate()-7);
-				updateWeek(currentStart);
-			});
-		}
-		if(next){
-			next.addEventListener('click', () => {
-				currentStart.setDate(currentStart.getDate()+7);
-				updateWeek(currentStart);
-			});
-		}
+		if(prev){ prev.addEventListener('click', () => { currentStart.setDate(currentStart.getDate()-7); updateWeek(currentStart); }); }
+		if(next){ next.addEventListener('click', () => { currentStart.setDate(currentStart.getDate()+7); updateWeek(currentStart); }); }
 	}
 
 	function setupSearch(){
@@ -62,17 +54,13 @@
 		if(!input) return;
 		input.addEventListener('input', () => {
 			const term = input.value.trim().toLowerCase();
-			qa('.recipe').forEach(card => {
-				const text = card.innerText.toLowerCase();
-				card.style.display = text.includes(term) ? '' : 'none';
-			});
+			qa('.recipe').forEach(card => { const text = card.innerText.toLowerCase(); card.style.display = text.includes(term) ? '' : 'none'; });
 		});
 	}
 
 	// ===== Details modal =====
 	function openModalFromRecipe(recipe){
-		const overlay = q('#meal-modal');
-		if(!overlay) return;
+		const overlay = q('#meal-modal'); if(!overlay) return;
 		q('#mm-title').textContent = recipe.name || 'Recipe';
 		q('#mm-type').textContent = (recipe.category||'').toUpperCase();
 		q('#mm-match').textContent = '';
@@ -80,140 +68,118 @@
 		q('#mm-protein').textContent = recipe.nutrition?.protein_g ? recipe.nutrition.protein_g+" g" : '-';
 		q('#mm-fat').textContent = recipe.nutrition?.fat_g ? recipe.nutrition.fat_g+" g" : '-';
 		q('#mm-carbs').textContent = recipe.nutrition?.carbs_g ? recipe.nutrition.carbs_g+" g" : '-';
-		const tbody = q('#mm-ingredients');
-		tbody.innerHTML = '';
+		const tbody = q('#mm-ingredients'); tbody.innerHTML = '';
 		const rows = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
-		rows.forEach(r => {
-			const tr = document.createElement('tr');
-			const name = r.name || '-';
-			const req = r.amount || '-';
-			tr.innerHTML = `<td>${name}</td><td>${req}</td><td>-</td><td>-</td>`;
-			tbody.appendChild(tr);
-		});
-		overlay.classList.add('show');
-		overlay.setAttribute('aria-hidden','false');
+		rows.forEach(r => { const tr = document.createElement('tr'); const name = r.name || '-'; const req = r.amount || '-'; tr.innerHTML = `<td>${name}</td><td>${req}</td><td>-</td><td>-</td>`; tbody.appendChild(tr); });
+		overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false');
 	}
 
 	function closeModal(){ const overlay = q('#meal-modal'); if(overlay){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); } }
-	function setupModal(){
-		const overlay = q('#meal-modal');
-		const closeBtn = q('.mm-close');
-		if(closeBtn){ closeBtn.addEventListener('click', closeModal); }
-		if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeModal(); }); }
-		document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
-		const addBtn = q('#mm-add'); if(addBtn){ addBtn.addEventListener('click', ()=>{ alert('占位交互：已添加到计划'); closeModal(); }); }
-	}
+	function setupModal(){ const overlay = q('#meal-modal'); const closeBtn = q('.mm-close'); if(closeBtn){ closeBtn.addEventListener('click', closeModal); } if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeModal(); }); } document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); }); const addBtn = q('#mm-add'); if(addBtn){ addBtn.addEventListener('click', ()=>{ alert('占位交互：已添加到计划'); closeModal(); }); } }
 
 	// ===== Sidebar recipes loading =====
 	async function loadRecipes(){
-		const list = q('.recipe-list');
-		if(!list) return;
+		const list = q('.recipe-list'); if(!list) return;
 		list.innerHTML = '<div class="period">Loading...</div>';
 		try{
 			const res = await fetch('WeelyMealPlanner/recipes_api.php?action=list_recipes&limit=50');
-			const data = await res.json();
-			if(!data.ok) throw new Error(data.data || 'Load failed');
+			const data = await res.json(); if(!data.ok) throw new Error(data.data || 'Load failed');
 			const arr = Array.isArray(data.data) ? data.data : [];
 			list.innerHTML = '';
 			arr.forEach(rec => {
 				const ingCount = Array.isArray(rec.ingredients) ? rec.ingredients.length : 0;
-				const div = document.createElement('div');
-				div.className = 'recipe';
+				const div = document.createElement('div'); div.className = 'recipe';
 				div.innerHTML = `
 					<div class="tags"><span>${(rec.category||'').toUpperCase()}</span></div>
 					<div>${ingCount} ingredients</div>
 					<div class="actions">
 						<button class="btn ghost" data-details>Details</button>
-					</div>
-				`;
+						<button class="btn" data-edit>Edit</button>
+						<button class="btn ghost" data-delete>Delete</button>
+					</div>`;
 				div.querySelector('[data-details]').addEventListener('click', ()=> openModalFromRecipe(rec));
+				div.querySelector('[data-edit]').addEventListener('click', ()=> startEdit(rec));
+				div.querySelector('[data-delete]').addEventListener('click', ()=> deleteRecipe(rec.recipe_id));
 				list.appendChild(div);
 			});
 			if(arr.length===0){ list.innerHTML = '<div class="period">No recipes yet.</div>'; }
-		}catch(e){
-			list.innerHTML = '<div class="period">'+e.message+'</div>';
+		}catch(e){ list.innerHTML = '<div class="period">'+e.message+'</div>'; }
+	}
+
+	function openEditor(){ const card=q('#re-card'); const body=q('#re-body'); if(body.hasAttribute('hidden')){ body.removeAttribute('hidden'); card.classList.add('open'); } }
+	function clearEditor(){ editingRecipeId=null; q('#re-submit').textContent='Add Recipe'; q('#re-name').value=''; q('#re-category').selectedIndex=1; q('#re-cal').value=''; q('#re-protein').value=''; q('#re-fat').value=''; q('#re-carbs').value=''; const lines=q('#re-ing-lines'); qa('.re-ing-line', lines).forEach((line,idx)=>{ if(idx===0){ line.querySelector('.re-ing-name').value=''; line.querySelector('.re-ing-amount').value=''; } else { line.remove(); } }); }
+
+	function fillEditor(rec){
+		editingRecipeId = rec.recipe_id;
+		q('#re-submit').textContent='Save';
+		q('#re-name').value = rec.name || '';
+		q('#re-category').value = (rec.category||'LUNCH').toUpperCase();
+		q('#re-cal').value = rec.nutrition?.calories || '';
+		q('#re-protein').value = rec.nutrition?.protein_g || '';
+		q('#re-fat').value = rec.nutrition?.fat_g || '';
+		q('#re-carbs').value = rec.nutrition?.carbs_g || '';
+		const lines = q('#re-ing-lines');
+		qa('.re-ing-line', lines).forEach((line,idx)=>{ if(idx>0) line.remove(); });
+		const arr = Array.isArray(rec.ingredients) ? rec.ingredients : [];
+		if(arr.length===0){ qa('.re-ing-line', lines)[0].querySelector('.re-ing-name').value=''; qa('.re-ing-line', lines)[0].querySelector('.re-ing-amount').value=''; }
+		else {
+			arr.forEach((ing, idx)=>{
+				let line;
+				if(idx===0){ line = qa('.re-ing-line', lines)[0]; }
+				else { line = document.createElement('div'); line.className='re-ing-line'; line.innerHTML='<input type="text" class="re-input re-ing-name" placeholder="Ingredient name">\n<input type="text" class="re-input small re-ing-amount" placeholder="Amount">\n<button class="btn ghost re-remove-line" title="Remove" aria-label="Remove line">×</button>'; lines.appendChild(line); }
+				line.querySelector('.re-ing-name').value = ing.name || '';
+				line.querySelector('.re-ing-amount').value = ing.amount || '';
+			});
 		}
 	}
 
-	// ===== Recipe Picker (kept minimal sample) =====
-	function openPicker(){
-		const overlay = q('#picker-modal'); if(!overlay) return;
-		const list = q('#picker-list'); list.innerHTML = '<div class="period">Use sidebar to view recipes.</div>';
-		overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false');
-	}
+	async function deleteRecipe(id){ if(!confirm('Delete this recipe?')) return; try{ const res=await fetch('WeelyMealPlanner/recipes_api.php?action=delete_recipe&recipe_id='+encodeURIComponent(id)); const data=await res.json(); if(!data.ok) throw new Error(data.data||'Delete failed'); await loadRecipes(); } catch(e){ alert(e.message); } }
+
+	function startEdit(rec){ openEditor(); fillEditor(rec); }
+
+	// ===== Recipe Picker =====
+	function openPicker(){ const overlay = q('#picker-modal'); if(!overlay) return; const list = q('#picker-list'); list.innerHTML = '<div class="period">Use sidebar to view recipes.</div>'; overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); }
 	function closePicker(){ const overlay=q('#picker-modal'); if(overlay){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); } }
 	function setupPicker(){ const overlay=q('#picker-modal'); const closeBtn=overlay?overlay.querySelector('.mm-close'):null; if(closeBtn){ closeBtn.addEventListener('click', closePicker); } if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closePicker(); }); } document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePicker(); }); qa('.add-link').forEach(el=>{ el.addEventListener('click', openPicker); }); }
 
-	// ===== Add New Recipe editor =====
+	// ===== Editor =====
 	function setupRecipeEditor(){
-		const card = q('#re-card');
-		const toggle = q('#re-toggle');
-		const body = q('#re-body');
-		const lines = q('#re-ing-lines');
-		const addLineBtn = q('#re-add-line');
-		const submitBtn = q('#re-submit');
-		const cancelBtn = q('#re-cancel');
-		if(toggle){ toggle.addEventListener('click', ()=>{ const hidden = body.hasAttribute('hidden'); if(hidden){ body.removeAttribute('hidden'); card.classList.add('open'); } else { body.setAttribute('hidden',''); card.classList.remove('open'); } }); toggle.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle.click(); } }); }
-
-		function bindLineEvents(line){
-			const removeBtn = line.querySelector('.re-remove-line');
-			if(removeBtn){ removeBtn.addEventListener('click', ()=>{ if(lines.children.length>1){ line.remove(); } else { line.querySelector('.re-ing-name').value=''; line.querySelector('.re-ing-amount').value=''; } }); }
-		}
+		const card = q('#re-card'); const toggle = q('#re-toggle'); const body = q('#re-body'); const lines = q('#re-ing-lines'); const addLineBtn = q('#re-add-line'); const submitBtn = q('#re-submit'); const cancelBtn = q('#re-cancel');
+		if(toggle){ toggle.addEventListener('click', ()=>{ const hidden = body.hasAttribute('hidden'); if(hidden){ body.removeAttribute('hidden'); card.classList.add('open'); } else { body.setAttribute('hidden',''); card.classList.remove('open'); clearEditor(); } }); toggle.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle.click(); } }); }
+		function bindLineEvents(line){ const removeBtn = line.querySelector('.re-remove-line'); if(removeBtn){ removeBtn.addEventListener('click', ()=>{ if(lines.children.length>1){ line.remove(); } else { line.querySelector('.re-ing-name').value=''; line.querySelector('.re-ing-amount').value=''; } }); } }
 		bindLineEvents(lines.querySelector('.re-ing-line'));
-
-		function addLine(){
-			const line = document.createElement('div');
-			line.className = 're-ing-line';
-			line.innerHTML = '<input type="text" class="re-input re-ing-name" placeholder="Ingredient name">\n<input type="text" class="re-input small re-ing-amount" placeholder="Amount">\n<button class="btn ghost re-remove-line" title="Remove" aria-label="Remove line">×</button>';
-			lines.appendChild(line);
-			bindLineEvents(line);
-		}
+		function addLine(){ const line=document.createElement('div'); line.className='re-ing-line'; line.innerHTML='<input type="text" class="re-input re-ing-name" placeholder="Ingredient name">\n<input type="text" class="re-input small re-ing-amount" placeholder="Amount">\n<button class="btn ghost re-remove-line" title="Remove" aria-label="Remove line">×</button>'; lines.appendChild(line); bindLineEvents(line); }
 		if(addLineBtn){ addLineBtn.addEventListener('click', addLine); }
 
 		async function submitRecipe(){
-			const title = q('#re-name').value.trim();
-			if(!title){ alert('Please enter recipe name'); return; }
+			const title = q('#re-name').value.trim(); if(!title){ alert('Please enter recipe name'); return; }
 			const category = (q('#re-category').value || 'LUNCH').toUpperCase();
-			const nutrition = {
-				calories: q('#re-cal')?.value || null,
-				protein_g: q('#re-protein')?.value || null,
-				fat_g: q('#re-fat')?.value || null,
-				carbs_g: q('#re-carbs')?.value || null
-			};
-			const ingredients = qa('.re-ing-line', lines).map((line, idx)=>({
-				name: line.querySelector('.re-ing-name').value.trim(),
-				amount: line.querySelector('.re-ing-amount').value.trim(),
-				pos: idx+1
-			})).filter(x=>x.name);
+			const nutrition = { calories: q('#re-cal')?.value || null, protein_g: q('#re-protein')?.value || null, fat_g: q('#re-fat')?.value || null, carbs_g: q('#re-carbs')?.value || null };
+			const ingredients = qa('.re-ing-line', lines).map((line, idx)=>({ name: line.querySelector('.re-ing-name').value.trim(), amount: line.querySelector('.re-ing-amount').value.trim(), pos: idx+1 })).filter(x=>x.name);
 			if(ingredients.length===0){ alert('Please add at least one ingredient'); return; }
-
 			const payload = { name: title, category, nutrition, ingredients };
-			submitBtn.disabled = true; submitBtn.textContent = 'Saving...';
+			submitBtn.disabled = true; submitBtn.textContent = editingRecipeId? 'Saving...' : 'Saving...';
 			try{
-				const res = await fetch('WeelyMealPlanner/recipes_api.php?action=create_recipe',{
-					method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload)
-				});
-				const data = await res.json();
-				if(!data.ok) throw new Error(data.data || 'Create failed');
-				// reset & collapse
-				q('#re-name').value=''; q('#re-category').selectedIndex=1;
-				q('#re-cal').value=''; q('#re-protein').value=''; q('#re-fat').value=''; q('#re-carbs').value='';
-				qa('.re-ing-line', lines).forEach((line,idx)=>{ if(idx===0){ line.querySelector('.re-ing-name').value=''; line.querySelector('.re-ing-amount').value=''; } else { line.remove(); } });
-				body.setAttribute('hidden',''); card.classList.remove('open');
-				await loadRecipes();
+				let res, data;
+				if(editingRecipeId){
+					payload.recipe_id = editingRecipeId;
+					res = await fetch('WeelyMealPlanner/recipes_api.php?action=update_recipe',{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+					data = await res.json(); if(!data.ok) throw new Error(data.data||'Update failed');
+					alert('Recipe updated');
+				}else{
+					res = await fetch('WeelyMealPlanner/recipes_api.php?action=create_recipe',{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+					data = await res.json(); if(!data.ok) throw new Error(data.data||'Create failed');
+					alert('Recipe created. ID: '+data.data.recipe_id);
+				}
+				clearEditor(); body.setAttribute('hidden',''); card.classList.remove('open'); await loadRecipes();
 			}catch(e){ alert(e.message); }
-			finally{ submitBtn.disabled=false; submitBtn.textContent='Add Recipe'; }
+			finally{ submitBtn.disabled=false; submitBtn.textContent='Add Recipe'; editingRecipeId=null; }
 		}
 		if(submitBtn){ submitBtn.addEventListener('click', submitRecipe); }
-		if(cancelBtn){ cancelBtn.addEventListener('click', ()=>{ body.setAttribute('hidden',''); card.classList.remove('open'); }); }
+		if(cancelBtn){ cancelBtn.addEventListener('click', ()=>{ body.setAttribute('hidden',''); card.classList.remove('open'); clearEditor(); }); }
 	}
 
 	document.addEventListener('DOMContentLoaded', async () => {
-		setupWeekSwitching();
-		setupSearch();
-		setupModal();
-		setupPicker();
-		setupRecipeEditor();
-		await loadRecipes();
+		setupWeekSwitching(); setupSearch(); setupModal(); setupRecipeEditor(); await loadRecipes();
 	});
 })();
