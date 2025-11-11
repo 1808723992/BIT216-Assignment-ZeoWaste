@@ -70,21 +70,24 @@
 	}
 
 	// ===== Details modal =====
-	function openModal(data){
+	function openModalFromRecipe(recipe){
 		const overlay = q('#meal-modal');
 		if(!overlay) return;
-		q('#mm-title').textContent = data.title;
-		q('#mm-type').textContent = data.type;
-		q('#mm-match').textContent = data.match;
-		q('#mm-calories').textContent = data.nutri.calories;
-		q('#mm-protein').textContent = data.nutri.protein;
-		q('#mm-fat').textContent = data.nutri.fat;
-		q('#mm-carbs').textContent = data.nutri.carbs;
+		q('#mm-title').textContent = recipe.name || 'Recipe';
+		q('#mm-type').textContent = (recipe.category||'').toUpperCase();
+		q('#mm-match').textContent = '';
+		q('#mm-calories').textContent = recipe.nutrition?.calories ? recipe.nutrition.calories+" kcal" : '-';
+		q('#mm-protein').textContent = recipe.nutrition?.protein_g ? recipe.nutrition.protein_g+" g" : '-';
+		q('#mm-fat').textContent = recipe.nutrition?.fat_g ? recipe.nutrition.fat_g+" g" : '-';
+		q('#mm-carbs').textContent = recipe.nutrition?.carbs_g ? recipe.nutrition.carbs_g+" g" : '-';
 		const tbody = q('#mm-ingredients');
 		tbody.innerHTML = '';
-		data.ingredients.forEach(row => {
+		const rows = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+		rows.forEach(r => {
 			const tr = document.createElement('tr');
-			tr.innerHTML = `<td>${row.name}</td><td>${row.required}</td><td>${row.available}</td><td class="${row.status==='OK'?'ok':'miss'}">${row.status}</td>`;
+			const name = r.name || '-';
+			const req = r.amount || '-';
+			tr.innerHTML = `<td>${name}</td><td>${req}</td><td>-</td><td>-</td>`;
 			tbody.appendChild(tr);
 		});
 		overlay.classList.add('show');
@@ -101,17 +104,43 @@
 		const addBtn = q('#mm-add'); if(addBtn){ addBtn.addEventListener('click', ()=>{ alert('占位交互：已添加到计划'); closeModal(); }); }
 	}
 
-	function setupDetailButtons(){ qa('[data-action="details"]').forEach(btn => { btn.addEventListener('click', () => openModal(getSampleRecipe())); }); }
-	function getSampleRecipe(){ return { title:'Spaghetti Bolognese', type:'DINNER', match:'PARTIAL', nutri:{ calories:'450 kcal', protein:'25 g', fat:'15 g', carbs:'52 g' }, ingredients:[ {name:'Spaghetti',required:'200 g',available:'200 g',status:'OK'},{name:'Ground Beef',required:'300 g',available:'150 g',status:'Missing 150 g'},{name:'Tomato Sauce',required:'2 cups',available:'2 cups',status:'OK'},{name:'Onion',required:'1',available:'1',status:'OK'},{name:'Garlic',required:'3 cloves',available:'2 cloves',status:'Missing 1 cloves'} ] }; }
+	// ===== Sidebar recipes loading =====
+	async function loadRecipes(){
+		const list = q('.recipe-list');
+		if(!list) return;
+		list.innerHTML = '<div class="period">Loading...</div>';
+		try{
+			const res = await fetch('WeelyMealPlanner/recipes_api.php?action=list_recipes&limit=50');
+			const data = await res.json();
+			if(!data.ok) throw new Error(data.data || 'Load failed');
+			const arr = Array.isArray(data.data) ? data.data : [];
+			list.innerHTML = '';
+			arr.forEach(rec => {
+				const ingCount = Array.isArray(rec.ingredients) ? rec.ingredients.length : 0;
+				const div = document.createElement('div');
+				div.className = 'recipe';
+				div.innerHTML = `
+					<div class="tags"><span>${(rec.category||'').toUpperCase()}</span></div>
+					<div>${ingCount} ingredients</div>
+					<div class="actions">
+						<button class="btn ghost" data-details>Details</button>
+					</div>
+				`;
+				div.querySelector('[data-details]').addEventListener('click', ()=> openModalFromRecipe(rec));
+				list.appendChild(div);
+			});
+			if(arr.length===0){ list.innerHTML = '<div class="period">No recipes yet.</div>'; }
+		}catch(e){
+			list.innerHTML = '<div class="period">'+e.message+'</div>';
+		}
+	}
 
-	// ===== Recipe Picker =====
-	const sampleList = [
-		{ title:'Dinner • 8 ingredients', name:'Spaghetti Bolognese', type:'DINNER', match:'FULLY' },
-		{ title:'Lunch • 3 ingredients', name:'Greek Salad', type:'LUNCH', match:'PARTIAL' },
-		{ title:'Lunch • 4 ingredients', name:'Tuna Sandwich', type:'LUNCH', match:'PARTIAL' },
-		{ title:'Breakfast • 4 ingredients', name:'Cheese & Tomato Omelette', type:'BREAKFAST', match:'PARTIAL' },
-	];
-	function openPicker(){ const overlay = q('#picker-modal'); if(!overlay) return; const list = q('#picker-list'); list.innerHTML=''; sampleList.forEach((item,idx)=>{ const row=document.createElement('div'); row.className='picker-row'; row.innerHTML=`<div class=\"picker-info\"><div class=\"picker-title\">${item.name}</div><div class=\"picker-sub\"><strong>${item.type}</strong> · ${item.title.split('•')[1]||''} <span class=\"badge\">${item.match}</span></div></div><div class=\"picker-actions\"><button class=\"btn ghost\" data-pick-details=\"${idx}\">Details</button></div>`; list.appendChild(row); }); overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); qa('[data-pick-details]').forEach(btn=>btn.addEventListener('click',()=>{ closePicker(); openModal(getSampleRecipe()); })); }
+	// ===== Recipe Picker (kept minimal sample) =====
+	function openPicker(){
+		const overlay = q('#picker-modal'); if(!overlay) return;
+		const list = q('#picker-list'); list.innerHTML = '<div class="period">Use sidebar to view recipes.</div>';
+		overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false');
+	}
 	function closePicker(){ const overlay=q('#picker-modal'); if(overlay){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); } }
 	function setupPicker(){ const overlay=q('#picker-modal'); const closeBtn=overlay?overlay.querySelector('.mm-close'):null; if(closeBtn){ closeBtn.addEventListener('click', closePicker); } if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closePicker(); }); } document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePicker(); }); qa('.add-link').forEach(el=>{ el.addEventListener('click', openPicker); }); }
 
@@ -141,24 +170,50 @@
 		}
 		if(addLineBtn){ addLineBtn.addEventListener('click', addLine); }
 
-		if(submitBtn){ submitBtn.addEventListener('click', ()=>{
+		async function submitRecipe(){
 			const title = q('#re-name').value.trim();
 			if(!title){ alert('Please enter recipe name'); return; }
-			const result = qa('.re-ing-line', lines).map(line=>({
+			const category = (q('#re-category').value || 'LUNCH').toUpperCase();
+			const nutrition = {
+				calories: q('#re-cal')?.value || null,
+				protein_g: q('#re-protein')?.value || null,
+				fat_g: q('#re-fat')?.value || null,
+				carbs_g: q('#re-carbs')?.value || null
+			};
+			const ingredients = qa('.re-ing-line', lines).map((line, idx)=>({
 				name: line.querySelector('.re-ing-name').value.trim(),
-				amount: line.querySelector('.re-ing-amount').value.trim()
+				amount: line.querySelector('.re-ing-amount').value.trim(),
+				pos: idx+1
 			})).filter(x=>x.name);
-			alert('占位交互：食谱 "'+title+'" 已保存，食材条目数：'+result.length);
-		}); }
+			if(ingredients.length===0){ alert('Please add at least one ingredient'); return; }
+
+			const payload = { name: title, category, nutrition, ingredients };
+			submitBtn.disabled = true; submitBtn.textContent = 'Saving...';
+			try{
+				const res = await fetch('WeelyMealPlanner/recipes_api.php?action=create_recipe',{
+					method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload)
+				});
+				const data = await res.json();
+				if(!data.ok) throw new Error(data.data || 'Create failed');
+				// reset & collapse
+				q('#re-name').value=''; q('#re-category').selectedIndex=1;
+				q('#re-cal').value=''; q('#re-protein').value=''; q('#re-fat').value=''; q('#re-carbs').value='';
+				qa('.re-ing-line', lines).forEach((line,idx)=>{ if(idx===0){ line.querySelector('.re-ing-name').value=''; line.querySelector('.re-ing-amount').value=''; } else { line.remove(); } });
+				body.setAttribute('hidden',''); card.classList.remove('open');
+				await loadRecipes();
+			}catch(e){ alert(e.message); }
+			finally{ submitBtn.disabled=false; submitBtn.textContent='Add Recipe'; }
+		}
+		if(submitBtn){ submitBtn.addEventListener('click', submitRecipe); }
 		if(cancelBtn){ cancelBtn.addEventListener('click', ()=>{ body.setAttribute('hidden',''); card.classList.remove('open'); }); }
 	}
 
-	document.addEventListener('DOMContentLoaded', () => {
+	document.addEventListener('DOMContentLoaded', async () => {
 		setupWeekSwitching();
 		setupSearch();
 		setupModal();
-		setupDetailButtons();
 		setupPicker();
 		setupRecipeEditor();
+		await loadRecipes();
 	});
 })();
