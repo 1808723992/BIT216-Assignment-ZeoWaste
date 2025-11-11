@@ -76,7 +76,7 @@ body {
 
 .btn:hover { background: var(--brand-600); border-color: var(--brand-600); }
 .btn.primary { background: var(--brand); border-color: var(--brand); }
-.btn.ghost { background: #fff; border-color: var(--border); color: var(--text); height: 32px; }
+.btn.ghost { background: #fff; border-color: var(--border); color: var(--text); height: 40px; border-radius: 10px; }
 .btn.ghost:hover { background: #f9fafb; }
 
 .grid-wrap {
@@ -123,8 +123,8 @@ body {
 .badge.warn { background: #fff7ed; color: #b45309; border-color: #fed7aa; }
 .badge.danger { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
 .recipe .ingredients { font-size: 14px; color: var(--text); margin-bottom: 10px; font-weight: 400; }
-.recipe .actions { display: flex; gap: 8px; margin-top: 8px; }
-.recipe .actions .btn { flex: 1; font-size: 13px; padding: 0 12px; height: 32px; }
+.recipe .actions { display:flex; gap:8px; margin-top:8px; }
+.recipe .actions .btn{ flex:1; height:36px; border-radius:10px; }
 
 .section-title { font-weight: 700; color: var(--muted); margin: 0 0 8px 0; font-size: 13px; }
 
@@ -198,3 +198,37 @@ body {
 .picker-actions{ display:flex; align-items:center; gap:10px; }
 .picker-actions .btn{ height:36px; padding:0 14px; border-radius:10px; font-weight:700; }
 .picker-actions .btn.ghost{ height:36px; }
+
+/* === Add New Recipe Editor (polished) === */
+.re-card{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:0; margin-top:16px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+.re-toggle{ width:100%; display:flex; align-items:center; justify-content:flex-start; gap:10px; background:#fff; border:none; padding:16px 18px; cursor:pointer; font-size:18px; font-weight:700; color:#0f172a; border-radius:12px; }
+.re-plus{ display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:var(--brand); color:#fff; margin-right:10px; font-weight:800; }
+.re-toggle span:first-child{ margin-right:10px; }
+.re-caret{ color:#6b7280; transition: transform .18s ease; margin-left:auto; }
+.re-card.open .re-caret{ transform: rotate(180deg); }
+.re-body{ padding:14px 18px 18px; border-top:1px solid var(--border); background:#fff; }
+.re-row{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+.re-label{ font-weight:700; color:#111827; font-size:14px; }
+.re-input{ height:44px; line-height:44px; border:1px solid var(--border); border-radius:10px; padding:0 12px; font-size:14px; }
+.re-input::placeholder{ font-size:14px; color:#9ca3af; }
+.re-input.small{ width:160px; }
+.re-ing-line{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.re-ing-line .re-input{ flex:1 1 260px; min-width:240px; }
+.re-ing-list{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.re-chip{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--border); background:#fafafa; border-radius:999px; font-size:13px; }
+.re-chip .x{ cursor:pointer; color:#6b7280; }
+/* Nutrition grid: input + unit aligned */
+.re-grid4{ display:grid; grid-template-columns: 1fr 48px 1fr 48px; column-gap:12px; row-gap:14px; align-items:center; }
+.re-input{ width:100%; }
+.re-unit{ text-align:left; margin-top:0; line-height:44px; }
+@media (max-width: 900px){ .re-grid4{ grid-template-columns: 1fr 48px; } }
+
+/* size normalization for Add New Recipe */
+.re-input, .re-input.small, #re-category, #re-ing-name, #re-ing-amount{ height:44px; line-height:44px; }
+.re-actions{ display:flex; gap:16px; justify-content:flex-end; margin-top:18px; flex-wrap:wrap; }
+
+/* multi-line ingredients */
+.re-ing-lines{ display:flex; flex-direction:column; gap:10px; }
+.re-ing-line{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.re-remove-line{ height:44px; border-radius:10px; width:44px; padding:0; display:inline-flex; align-items:center; justify-content:center; }
+.re-ing-actions{ margin-top:8px; }

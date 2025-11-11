@@ -23,32 +23,32 @@
 		<div class="grid-wrap">
 			<div class="board">
 				<div class="board-head">
-					<span class="period">周视图</span>
+					<span class="period">Week View</span>
 				</div>
 				<table class="table">
 					<thead>
 						<tr>
 							<th class="slot-label"></th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周一</span><span class="date" data-day-offset="0">—</span></div>
+								<div class="day-title"><span class="dow">Mon</span><span class="date" data-day-offset="0">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周二</span><span class="date" data-day-offset="1">—</span></div>
+								<div class="day-title"><span class="dow">Tue</span><span class="date" data-day-offset="1">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周三</span><span class="date" data-day-offset="2">—</span></div>
+								<div class="day-title"><span class="dow">Wed</span><span class="date" data-day-offset="2">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周四</span><span class="date" data-day-offset="3">—</span></div>
+								<div class="day-title"><span class="dow">Thu</span><span class="date" data-day-offset="3">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周五</span><span class="date" data-day-offset="4">—</span></div>
+								<div class="day-title"><span class="dow">Fri</span><span class="date" data-day-offset="4">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周六</span><span class="date" data-day-offset="5">—</span></div>
+								<div class="day-title"><span class="dow">Sat</span><span class="date" data-day-offset="5">—</span></div>
 							</th>
 							<th class="day-head">
-								<div class="day-title"><span class="dow">周日</span><span class="date" data-day-offset="6">—</span></div>
+								<div class="day-title"><span class="dow">Sun</span><span class="date" data-day-offset="6">—</span></div>
 							</th>
 						</tr>
 					</thead>
@@ -112,7 +112,6 @@
 						<div class="ingredients">10 ingredients</div>
 						<div class="actions">
 							<button class="btn ghost" data-action="details">Details</button>
-							<button class="btn primary" data-action="add-to-plan">Add to Plan</button>
 						</div>
 					</div>
 
@@ -124,7 +123,6 @@
 						<div class="ingredients">4 ingredients</div>
 						<div class="actions">
 							<button class="btn ghost" data-action="details">Details</button>
-							<button class="btn primary" data-action="add-to-plan">Add to Plan</button>
 						</div>
 					</div>
 
@@ -136,7 +134,6 @@
 						<div class="ingredients">5 ingredients</div>
 						<div class="actions">
 							<button class="btn ghost" data-action="details">Details</button>
-							<button class="btn primary" data-action="add-to-plan">Add to Plan</button>
 						</div>
 					</div>
 
@@ -148,11 +145,56 @@
 						<div class="ingredients">7 ingredients</div>
 						<div class="actions">
 							<button class="btn ghost" data-action="details">Details</button>
-							<button class="btn primary" data-action="add-to-plan">Add to Plan</button>
 						</div>
 					</div>
 				</div>
 			</aside>
+		</div>
+
+		<!-- Add New Recipe Editor -->
+		<div class="re-card" id="re-card">
+			<button class="re-toggle" id="re-toggle"><span class="re-plus">+</span><span>Add New Recipe</span><span class="re-caret">▾</span></button>
+			<div class="re-body" id="re-body" hidden>
+				<div class="re-row">
+					<label class="re-label">Recipe Name</label>
+					<input type="text" id="re-name" class="re-input" placeholder="e.g., Greek Salad">
+				</div>
+				<div class="re-row">
+					<label class="re-label">Category</label>
+					<select id="re-category" class="re-input">
+						<option>Breakfast</option>
+						<option selected>Lunch</option>
+						<option>Dinner</option>
+						<option>Snacks</option>
+					</select>
+				</div>
+				<div class="re-row">
+					<label class="re-label">Ingredients</label>
+					<div id="re-ing-lines" class="re-ing-lines">
+						<div class="re-ing-line">
+							<input type="text" class="re-input re-ing-name" placeholder="Ingredient name">
+							<input type="text" class="re-input small re-ing-amount" placeholder="Amount">
+							<button class="btn ghost re-remove-line" title="Remove" aria-label="Remove line">×</button>
+						</div>
+					</div>
+					<div class="re-ing-actions">
+						<button class="btn ghost" id="re-add-line">+ Add</button>
+					</div>
+				</div>
+				<div class="re-row">
+					<label class="re-label">Nutrition (per serving)</label>
+					<div class="re-grid4">
+						<input type="text" id="re-cal" class="re-input" placeholder="Cal"><span class="re-unit">kcal</span>
+						<input type="text" id="re-protein" class="re-input" placeholder="Protein"><span class="re-unit">g</span>
+						<input type="text" id="re-fat" class="re-input" placeholder="Fat"><span class="re-unit">g</span>
+						<input type="text" id="re-carbs" class="re-input" placeholder="Carbs"><span class="re-unit">g</span>
+					</div>
+				</div>
+				<div class="re-actions">
+					<button class="btn primary" id="re-submit">Add Recipe</button>
+					<button class="btn ghost" id="re-cancel">Cancel</button>
+				</div>
+			</div>
 		</div>
 
 		<div class="shopping">
