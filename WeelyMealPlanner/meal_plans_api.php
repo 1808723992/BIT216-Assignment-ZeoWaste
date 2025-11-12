@@ -1,16 +1,28 @@
 <?php
+// 必须在任何输出之前启动session
+session_start();
+
+// 设置响应头
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 
-require_once __DIR__ . '/../connect.php'; // $conn (mysqli)
-
-session_start();
+// 检查登录状态
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode(['ok' => false, 'error' => 'UNAUTHORIZED']);
     exit;
 }
 $user_id = (int)$_SESSION['user_id'];
+
+// 连接数据库（使用API专用连接文件，避免输出HTML错误）
+require_once __DIR__ . '/api_connect.php'; // $conn (mysqli)
+
+// 检查数据库连接
+if (!$conn || $conn->connect_error) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Database connection failed']);
+    exit;
+}
 
 function respond($ok, $data = null, $http = 200) {
     http_response_code($http);

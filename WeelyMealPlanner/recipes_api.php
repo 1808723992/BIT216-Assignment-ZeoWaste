@@ -2,7 +2,14 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 
-require_once __DIR__ . '/../connect.php'; // $conn (mysqli)
+require_once __DIR__ . '/api_connect.php'; // $conn (mysqli)
+
+// 检查数据库连接
+if (!$conn || $conn->connect_error) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Database connection failed']);
+    exit;
+}
 
 function respond($ok, $data = null, $http = 200) {
 	http_response_code($http);
