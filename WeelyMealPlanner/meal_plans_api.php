@@ -1,0 +1,388 @@
+<?php
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+
+require_once __DIR__ . '/../connect.php'; // $conn (mysqli)
+
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => 'UNAUTHORIZED']);
+    exit;
+}
+$user_id = (int)$_SESSION['user_id'];
+
+function respond($ok, $data = null, $http = 200) {
+    http_response_code($http);
+    echo json_encode(['ok' => $ok, 'data' => $data], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+$method = $_SERVER['REQUEST_METHOD'];
+$action = $_GET['action'] ?? $_POST['action'] ?? null;
+
+if (!$action) {
+    respond(false, 'Missing action', 400);
+}
+
+function get_json_body() {
+    $raw = file_get_contents('php://input');
+    if (!$raw) return [];
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+// ===== 添加餐食计划 =====
+if ($action === 'add_meal_plan') {
+    $body = ($method === 'POST') ? (get_json_body() ?: $_POST) : $_GET;
+    $recipe_id = isset($body['recipe_id']) ? (int)$body['recipe_id'] : 0;
+    $meal_date = trim($body['meal_date'] ?? '');
+    $meal_slot = trim($body['meal_slot'] ?? '');
+    
+    if (!$recipe_id || !$meal_date || !$meal_slot) {
+        respond(false, 'recipe_id, meal_date, and meal_slot are required', 422);
+    }
+    
+    $allowed_slots = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
+    if (!in_array($meal_slot, $allowed_slots, true)) {
+        respond(false, 'Invalid meal_slot. Must be one of: ' . implode(', ', $allowed_slots), 422);
+    }
+    
+    // 检查日期格式
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $meal_date)) {
+        respond(false, 'Invalid date format. Use YYYY-MM-DD', 422);
+    }
+    
+    // 检查食谱是否存在且属于当前用户
+    $stmt = $conn->prepare("SELECT recipe_id FROM recipes WHERE recipe_id = ? AND (user_id = ? OR user_id IS NULL)");
+    $stmt->bind_param('ii', $recipe_id, $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 0) {
+        $stmt->close();
+        respond(false, 'Recipe not found or access denied', 404);
+    }
+    $stmt->close();
+    
+    // 开始事务
+    $conn->begin_transaction();
+    
+    try {
+        // 1. 先检查是否已存在该用户、日期、餐时段的计划
+        $check_sql = "SELECT plan_id FROM meal_plans WHERE user_id = ? AND meal_date = ? AND meal_slot = ?";
+        $check_stmt = $conn->prepare($check_sql);
+        $check_stmt->bind_param('iss', $user_id, $meal_date, $meal_slot);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+        $existing_plan = $check_result->fetch_assoc();
+        $check_stmt->close();
+        
+        $plan_id = null;
+        
+        if ($existing_plan) {
+            // 如果计划已存在，使用现有的plan_id
+            $plan_id = $existing_plan['plan_id'];
+            
+            // 将之前关联到该计划的食谱的plan_id设为NULL
+            $update_old = $conn->prepare("UPDATE recipes SET plan_id = NULL WHERE plan_id = ?");
+            $update_old->bind_param('i', $plan_id);
+            $update_old->execute();
+            $update_old->close();
+            
+            // 更新计划的更新时间
+            $update_plan = $conn->prepare("UPDATE meal_plans SET updated_at = NOW() WHERE plan_id = ?");
+            $update_plan->bind_param('i', $plan_id);
+            $update_plan->execute();
+            $update_plan->close();
+        } else {
+            // 如果计划不存在，创建新计划
+            $insert_sql = "INSERT INTO meal_plans (user_id, meal_date, meal_slot, created_at, updated_at) 
+                          VALUES (?, ?, ?, NOW(), NOW())";
+            $insert_stmt = $conn->prepare($insert_sql);
+            $insert_stmt->bind_param('iss', $user_id, $meal_date, $meal_slot);
+            if (!$insert_stmt->execute()) {
+                throw new Exception('Failed to create meal plan: ' . $insert_stmt->error);
+            }
+            $plan_id = $insert_stmt->insert_id;
+            $insert_stmt->close();
+        }
+        
+        // 2. 将食谱的plan_id更新为这个plan_id
+        $update_recipe = $conn->prepare("UPDATE recipes SET plan_id = ? WHERE recipe_id = ?");
+        $update_recipe->bind_param('ii', $plan_id, $recipe_id);
+        if (!$update_recipe->execute()) {
+            throw new Exception('Failed to update recipe: ' . $update_recipe->error);
+        }
+        $update_recipe->close();
+        
+        // 提交事务
+        $conn->commit();
+        respond(true, ['plan_id' => $plan_id]);
+        
+    } catch (Exception $e) {
+        // 回滚事务
+        $conn->rollback();
+        respond(false, $e->getMessage(), 500);
+    }
+}
+
+// ===== 获取餐食计划 =====
+if ($action === 'get_meal_plans') {
+    $start_date = trim($_GET['start_date'] ?? '');
+    $end_date = trim($_GET['end_date'] ?? '');
+    
+    // 如果提供了日期范围，查询该范围内的计划
+    if ($start_date && $end_date) {
+        $sql = "SELECT mp.plan_id, mp.meal_date, mp.meal_slot, 
+                       r.recipe_id, r.name AS recipe_name, r.category AS recipe_category,
+                       r.nutrition, r.ingredients
+                FROM meal_plans mp
+                LEFT JOIN recipes r ON mp.plan_id = r.plan_id
+                WHERE mp.user_id = ? AND mp.meal_date BETWEEN ? AND ?
+                ORDER BY mp.meal_date ASC, 
+                         FIELD(mp.meal_slot, 'Breakfast', 'Lunch', 'Dinner', 'Snacks')";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('iss', $user_id, $start_date, $end_date);
+    } else {
+        // 如果没有提供日期范围，返回最近7天的计划
+        $sql = "SELECT mp.plan_id, mp.meal_date, mp.meal_slot, 
+                       r.recipe_id, r.name AS recipe_name, r.category AS recipe_category,
+                       r.nutrition, r.ingredients
+                FROM meal_plans mp
+                LEFT JOIN recipes r ON mp.plan_id = r.plan_id
+                WHERE mp.user_id = ? AND mp.meal_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+                ORDER BY mp.meal_date ASC, 
+                         FIELD(mp.meal_slot, 'Breakfast', 'Lunch', 'Dinner', 'Snacks')";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $user_id);
+    }
+    
+    if (!$stmt->execute()) {
+        respond(false, 'Query failed: ' . $stmt->error, 500);
+    }
+    
+    $result = $stmt->get_result();
+    $plans = [];
+    while ($row = $result->fetch_assoc()) {
+        // 解析JSON字段
+        if ($row['nutrition']) {
+            $row['nutrition'] = json_decode($row['nutrition'], true);
+        }
+        if ($row['ingredients']) {
+            $row['ingredients'] = json_decode($row['ingredients'], true);
+        }
+        $plans[] = $row;
+    }
+    $stmt->close();
+    respond(true, $plans);
+}
+
+// ===== 删除餐食计划 =====
+if ($action === 'remove_meal_plan') {
+    $body = ($method === 'POST') ? (get_json_body() ?: $_POST) : $_GET;
+    $plan_id = isset($body['plan_id']) ? (int)$body['plan_id'] : 0;
+    $meal_date = trim($body['meal_date'] ?? '');
+    $meal_slot = trim($body['meal_slot'] ?? '');
+    
+    $conn->begin_transaction();
+    
+    try {
+        // 找到要删除的计划ID
+        if ($plan_id) {
+            // 验证计划属于当前用户
+            $check = $conn->prepare("SELECT plan_id FROM meal_plans WHERE plan_id = ? AND user_id = ?");
+            $check->bind_param('ii', $plan_id, $user_id);
+            $check->execute();
+            $check_result = $check->get_result();
+            if ($check_result->num_rows === 0) {
+                $check->close();
+                throw new Exception('Meal plan not found or access denied');
+            }
+            $check->close();
+        } else if ($meal_date && $meal_slot) {
+            // 通过日期和餐时段查找计划
+            $find = $conn->prepare("SELECT plan_id FROM meal_plans WHERE user_id = ? AND meal_date = ? AND meal_slot = ?");
+            $find->bind_param('iss', $user_id, $meal_date, $meal_slot);
+            $find->execute();
+            $find_result = $find->get_result();
+            if ($find_result->num_rows === 0) {
+                $find->close();
+                throw new Exception('Meal plan not found');
+            }
+            $plan_row = $find_result->fetch_assoc();
+            $plan_id = $plan_row['plan_id'];
+            $find->close();
+        } else {
+            throw new Exception('Either plan_id or (meal_date and meal_slot) is required');
+        }
+        
+        // 先更新相关食谱的plan_id为NULL（虽然ON DELETE SET NULL会自动处理，但显式处理更清晰）
+        $update_recipes = $conn->prepare("UPDATE recipes SET plan_id = NULL WHERE plan_id = ?");
+        $update_recipes->bind_param('i', $plan_id);
+        $update_recipes->execute();
+        $update_recipes->close();
+        
+        // 删除计划（由于ON DELETE SET NULL，recipes的plan_id会自动设为NULL）
+        $delete = $conn->prepare("DELETE FROM meal_plans WHERE plan_id = ? AND user_id = ?");
+        $delete->bind_param('ii', $plan_id, $user_id);
+        if (!$delete->execute()) {
+            throw new Exception('Failed to delete meal plan: ' . $delete->error);
+        }
+        $affected = $delete->affected_rows;
+        $delete->close();
+        
+        $conn->commit();
+        respond(true, ['deleted' => $affected]);
+        
+    } catch (Exception $e) {
+        $conn->rollback();
+        respond(false, $e->getMessage(), 500);
+    }
+}
+
+// ===== 批量添加餐食计划 =====
+if ($action === 'batch_add_meal_plans') {
+    $body = get_json_body();
+    $plans = $body['plans'] ?? [];
+    
+    if (empty($plans) || !is_array($plans)) {
+        respond(false, 'plans array is required', 422);
+    }
+    
+    $allowed_slots = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
+    $conn->begin_transaction();
+    
+    try {
+        foreach ($plans as $plan) {
+            $recipe_id = isset($plan['recipe_id']) ? (int)$plan['recipe_id'] : 0;
+            $meal_date = trim($plan['meal_date'] ?? '');
+            $meal_slot = trim($plan['meal_slot'] ?? '');
+            
+            if (!$recipe_id || !$meal_date || !$meal_slot) {
+                throw new Exception('Each plan must have recipe_id, meal_date, and meal_slot');
+            }
+            
+            if (!in_array($meal_slot, $allowed_slots, true)) {
+                throw new Exception('Invalid meal_slot: ' . $meal_slot);
+            }
+            
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $meal_date)) {
+                throw new Exception('Invalid date format: ' . $meal_date);
+            }
+            
+            // 检查食谱是否存在
+            $check_recipe = $conn->prepare("SELECT recipe_id FROM recipes WHERE recipe_id = ?");
+            $check_recipe->bind_param('i', $recipe_id);
+            $check_recipe->execute();
+            $check_result = $check_recipe->get_result();
+            if ($check_result->num_rows === 0) {
+                $check_recipe->close();
+                throw new Exception('Recipe not found: ' . $recipe_id);
+            }
+            $check_recipe->close();
+            
+            // 检查是否已存在计划
+            $check_plan = $conn->prepare("SELECT plan_id FROM meal_plans WHERE user_id = ? AND meal_date = ? AND meal_slot = ?");
+            $check_plan->bind_param('iss', $user_id, $meal_date, $meal_slot);
+            $check_plan->execute();
+            $plan_result = $check_plan->get_result();
+            $existing_plan = $plan_result->fetch_assoc();
+            $check_plan->close();
+            
+            $plan_id = null;
+            
+            if ($existing_plan) {
+                // 使用现有计划
+                $plan_id = $existing_plan['plan_id'];
+                
+                // 清除之前关联的食谱
+                $clear = $conn->prepare("UPDATE recipes SET plan_id = NULL WHERE plan_id = ?");
+                $clear->bind_param('i', $plan_id);
+                $clear->execute();
+                $clear->close();
+                
+                // 更新计划
+                $update = $conn->prepare("UPDATE meal_plans SET updated_at = NOW() WHERE plan_id = ?");
+                $update->bind_param('i', $plan_id);
+                $update->execute();
+                $update->close();
+            } else {
+                // 创建新计划
+                $insert = $conn->prepare("INSERT INTO meal_plans (user_id, meal_date, meal_slot, created_at, updated_at) 
+                                         VALUES (?, ?, ?, NOW(), NOW())");
+                $insert->bind_param('iss', $user_id, $meal_date, $meal_slot);
+                if (!$insert->execute()) {
+                    throw new Exception('Failed to create meal plan: ' . $insert->error);
+                }
+                $plan_id = $insert->insert_id;
+                $insert->close();
+            }
+            
+            // 更新食谱的plan_id
+            $update_recipe = $conn->prepare("UPDATE recipes SET plan_id = ? WHERE recipe_id = ?");
+            $update_recipe->bind_param('ii', $plan_id, $recipe_id);
+            if (!$update_recipe->execute()) {
+                throw new Exception('Failed to update recipe: ' . $update_recipe->error);
+            }
+            $update_recipe->close();
+        }
+        
+        $conn->commit();
+        respond(true, ['added' => count($plans)]);
+    } catch (Exception $e) {
+        $conn->rollback();
+        respond(false, $e->getMessage(), 500);
+    }
+}
+
+// ===== 获取指定周的计划 =====
+if ($action === 'get_week_plans') {
+    $week_start = trim($_GET['week_start'] ?? '');
+    
+    if (!$week_start) {
+        // 如果没有提供week_start，默认使用本周一
+        $week_start = date('Y-m-d', strtotime('monday this week'));
+    }
+    
+    // 验证日期格式
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $week_start)) {
+        respond(false, 'Invalid date format. Use YYYY-MM-DD', 422);
+    }
+    
+    // 计算周日（一周的最后一天）
+    $week_end = date('Y-m-d', strtotime($week_start . ' +6 days'));
+    
+    $sql = "SELECT mp.plan_id, mp.meal_date, mp.meal_slot, 
+                   r.recipe_id, r.name AS recipe_name, r.category AS recipe_category,
+                   r.nutrition, r.ingredients
+            FROM meal_plans mp
+            LEFT JOIN recipes r ON mp.plan_id = r.plan_id
+            WHERE mp.user_id = ? AND mp.meal_date BETWEEN ? AND ?
+            ORDER BY mp.meal_date ASC, 
+                     FIELD(mp.meal_slot, 'Breakfast', 'Lunch', 'Dinner', 'Snacks')";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param('iss', $user_id, $week_start, $week_end);
+    
+    if (!$stmt->execute()) {
+        respond(false, 'Query failed: ' . $stmt->error, 500);
+    }
+    
+    $result = $stmt->get_result();
+    $plans = [];
+    while ($row = $result->fetch_assoc()) {
+        // 解析JSON字段
+        if ($row['nutrition']) {
+            $row['nutrition'] = json_decode($row['nutrition'], true);
+        }
+        if ($row['ingredients']) {
+            $row['ingredients'] = json_decode($row['ingredients'], true);
+        }
+        $plans[] = $row;
+    }
+    $stmt->close();
+    respond(true, $plans);
+}
+
+respond(false, 'Unknown action', 400);
+?>
+
