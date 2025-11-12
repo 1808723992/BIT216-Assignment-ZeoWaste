@@ -2,6 +2,14 @@
 	const q = (s, r=document) => r.querySelector(s);
 	const qa = (s, r=document) => Array.from(r.querySelectorAll(s));
 
+	// 获取API基础路径（相对于当前页面）
+	function getApiPath(filename) {
+		// 尝试使用当前页面的路径来构建API路径
+		const currentPath = window.location.pathname;
+		const currentDir = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+		return currentDir + filename;
+	}
+
 	let editingRecipeId = null; // 当前编辑的 recipe_id
 	let currentRecipeId = null; // 当前在详情模态框中选择的食谱ID
 	let currentWeekStart = null; // 当前周的开始日期
@@ -61,7 +69,8 @@
 		const weekStartStr = formatDate(currentWeekStart);
 		try{
 			// 使用相对于当前页面的路径
-			const apiUrl = new URL('meal_plans_api.php', window.location.href);
+			const apiPath = getApiPath('meal_plans_api.php');
+			const apiUrl = new URL(apiPath, window.location.origin);
 			apiUrl.searchParams.set('action', 'get_week_plans');
 			apiUrl.searchParams.set('week_start', weekStartStr);
 			
@@ -240,7 +249,8 @@
 	// ===== 添加餐食计划 =====
 	async function addMealPlan(recipeId, mealDate, mealSlot){
 		try{
-			const apiUrl = new URL('meal_plans_api.php', window.location.href);
+			const apiPath = getApiPath('meal_plans_api.php');
+			const apiUrl = new URL(apiPath, window.location.origin);
 			apiUrl.searchParams.set('action', 'add_meal_plan');
 			
 			const res = await fetch(apiUrl.toString(), {
@@ -289,7 +299,8 @@
 	async function removeMealPlan(planId, mealDate, mealSlot){
 		if(!confirm('Remove this meal from your plan?')) return;
 		try{
-			const apiUrl = new URL('meal_plans_api.php', window.location.href);
+			const apiPath = getApiPath('meal_plans_api.php');
+			const apiUrl = new URL(apiPath, window.location.origin);
 			apiUrl.searchParams.set('action', 'remove_meal_plan');
 			
 			const res = await fetch(apiUrl.toString(), {
@@ -349,7 +360,8 @@
 		if(!list) return;
 		list.innerHTML = '<div class="period">Loading recipes...</div>';
 		try{
-			const apiUrl = new URL('recipes_api.php', window.location.href);
+			const apiPath = getApiPath('recipes_api.php');
+			const apiUrl = new URL(apiPath, window.location.origin);
 			apiUrl.searchParams.set('action', 'list_recipes');
 			apiUrl.searchParams.set('limit', '50');
 			
@@ -409,7 +421,8 @@
 		const list = q('.recipe-list'); if(!list) return;
 		list.innerHTML = '<div class="period">Loading...</div>';
 		try{
-			const apiUrl = new URL('recipes_api.php', window.location.href);
+			const apiPath = getApiPath('recipes_api.php');
+			const apiUrl = new URL(apiPath, window.location.origin);
 			apiUrl.searchParams.set('action', 'list_recipes');
 			apiUrl.searchParams.set('limit', '50');
 			
@@ -515,7 +528,8 @@
 			})).filter(x=>x.name)
 		};
 		try{
-			const apiUrl = new URL('recipes_api.php', window.location.href);
+			const apiPath = getApiPath('recipes_api.php');
+			const apiUrl = new URL(apiPath, window.location.origin);
 			apiUrl.searchParams.set('action', 'update_recipe');
 			
 			const res = await fetch(apiUrl.toString(), { 
@@ -546,7 +560,8 @@
 	async function deleteRecipe(id){ 
 		if(!confirm('Delete this recipe?')) return; 
 		try{ 
-			const apiUrl = new URL('recipes_api.php', window.location.href);
+			const apiPath = getApiPath('recipes_api.php');
+			const apiUrl = new URL(apiPath, window.location.origin);
 			apiUrl.searchParams.set('action', 'delete_recipe');
 			apiUrl.searchParams.set('recipe_id', id);
 			
@@ -617,7 +632,8 @@
 			const payload = { name: title, category, nutrition, ingredients };
 			submitBtn.disabled = true; submitBtn.textContent = 'Saving...';
 			try{
-				const apiUrl = new URL('recipes_api.php', window.location.href);
+				const apiPath = getApiPath('recipes_api.php');
+				const apiUrl = new URL(apiPath, window.location.origin);
 				apiUrl.searchParams.set('action', 'create_recipe');
 				
 				const res = await fetch(apiUrl.toString(), { 
