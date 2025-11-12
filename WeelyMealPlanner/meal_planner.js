@@ -60,12 +60,31 @@
 		if(!currentWeekStart) return;
 		const weekStartStr = formatDate(currentWeekStart);
 		try{
-			const res = await fetch(`meal_plans_api.php?action=get_week_plans&week_start=${weekStartStr}`);
+			// 使用相对于当前页面的路径
+			const apiUrl = new URL('meal_plans_api.php', window.location.href);
+			apiUrl.searchParams.set('action', 'get_week_plans');
+			apiUrl.searchParams.set('week_start', weekStartStr);
+			
+			const res = await fetch(apiUrl.toString());
+			
+			// 检查响应状态
+			if(res.status === 404){
+				console.error('API file not found. Check if meal_plans_api.php exists in WeelyMealPlanner folder.');
+				return;
+			}
 			
 			// 检查是否是401未授权错误
 			if(res.status === 401){
 				alert('Please login first');
 				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
+			// 检查Content-Type，如果不是JSON，说明返回了HTML错误页面
+			const contentType = res.headers.get('content-type');
+			if(!contentType || !contentType.includes('application/json')){
+				const text = await res.text();
+				console.error('API returned non-JSON response:', text.substring(0, 200));
 				return;
 			}
 			
@@ -221,7 +240,10 @@
 	// ===== 添加餐食计划 =====
 	async function addMealPlan(recipeId, mealDate, mealSlot){
 		try{
-			const res = await fetch('meal_plans_api.php?action=add_meal_plan', {
+			const apiUrl = new URL('meal_plans_api.php', window.location.href);
+			apiUrl.searchParams.set('action', 'add_meal_plan');
+			
+			const res = await fetch(apiUrl.toString(), {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -231,10 +253,24 @@
 				})
 			});
 			
+			// 检查响应状态
+			if(res.status === 404){
+				alert('API file not found');
+				return;
+			}
+			
 			// 检查是否是401未授权错误
 			if(res.status === 401){
 				alert('Please login first');
 				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
+			// 检查Content-Type
+			const contentType = res.headers.get('content-type');
+			if(!contentType || !contentType.includes('application/json')){
+				const text = await res.text();
+				alert('API error: ' + text.substring(0, 100));
 				return;
 			}
 			
@@ -253,7 +289,10 @@
 	async function removeMealPlan(planId, mealDate, mealSlot){
 		if(!confirm('Remove this meal from your plan?')) return;
 		try{
-			const res = await fetch('meal_plans_api.php?action=remove_meal_plan', {
+			const apiUrl = new URL('meal_plans_api.php', window.location.href);
+			apiUrl.searchParams.set('action', 'remove_meal_plan');
+			
+			const res = await fetch(apiUrl.toString(), {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -261,10 +300,24 @@
 				})
 			});
 			
+			// 检查响应状态
+			if(res.status === 404){
+				alert('API file not found');
+				return;
+			}
+			
 			// 检查是否是401未授权错误
 			if(res.status === 401){
 				alert('Please login first');
 				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
+			// 检查Content-Type
+			const contentType = res.headers.get('content-type');
+			if(!contentType || !contentType.includes('application/json')){
+				const text = await res.text();
+				alert('API error: ' + text.substring(0, 100));
 				return;
 			}
 			
@@ -296,12 +349,30 @@
 		if(!list) return;
 		list.innerHTML = '<div class="period">Loading recipes...</div>';
 		try{
-			const res = await fetch('recipes_api.php?action=list_recipes&limit=50');
+			const apiUrl = new URL('recipes_api.php', window.location.href);
+			apiUrl.searchParams.set('action', 'list_recipes');
+			apiUrl.searchParams.set('limit', '50');
+			
+			const res = await fetch(apiUrl.toString());
+			
+			// 检查响应状态
+			if(res.status === 404){
+				list.innerHTML = '<div class="period">API file not found</div>';
+				return;
+			}
 			
 			// 检查是否是401未授权错误
 			if(res.status === 401){
 				alert('Please login first');
 				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
+			// 检查Content-Type
+			const contentType = res.headers.get('content-type');
+			if(!contentType || !contentType.includes('application/json')){
+				const text = await res.text();
+				list.innerHTML = '<div class="period">API error: ' + text.substring(0, 50) + '</div>';
 				return;
 			}
 			
@@ -338,12 +409,30 @@
 		const list = q('.recipe-list'); if(!list) return;
 		list.innerHTML = '<div class="period">Loading...</div>';
 		try{
-			const res = await fetch('recipes_api.php?action=list_recipes&limit=50');
+			const apiUrl = new URL('recipes_api.php', window.location.href);
+			apiUrl.searchParams.set('action', 'list_recipes');
+			apiUrl.searchParams.set('limit', '50');
+			
+			const res = await fetch(apiUrl.toString());
+			
+			// 检查响应状态
+			if(res.status === 404){
+				list.innerHTML = '<div class="period">API file not found</div>';
+				return;
+			}
 			
 			// 检查是否是401未授权错误（虽然recipes_api.php目前不需要登录，但为了统一处理）
 			if(res.status === 401){
 				alert('Please login first');
 				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
+			// 检查Content-Type
+			const contentType = res.headers.get('content-type');
+			if(!contentType || !contentType.includes('application/json')){
+				const text = await res.text();
+				list.innerHTML = '<div class="period">API error: ' + text.substring(0, 50) + '</div>';
 				return;
 			}
 			
@@ -426,13 +515,64 @@
 			})).filter(x=>x.name)
 		};
 		try{
-			const res = await fetch('recipes_api.php?action=update_recipe',{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+			const apiUrl = new URL('recipes_api.php', window.location.href);
+			apiUrl.searchParams.set('action', 'update_recipe');
+			
+			const res = await fetch(apiUrl.toString(), { 
+				method:'POST', 
+				headers:{ 'Content-Type':'application/json' }, 
+				body: JSON.stringify(payload) 
+			});
+			
+			// 检查响应状态
+			if(res.status === 404){
+				alert('API file not found');
+				return;
+			}
+			
+			// 检查Content-Type
+			const contentType = res.headers.get('content-type');
+			if(!contentType || !contentType.includes('application/json')){
+				const text = await res.text();
+				alert('API error: ' + text.substring(0, 100));
+				return;
+			}
+			
 			const data = await res.json(); if(!data.ok) throw new Error(data.data||'Update failed');
 			closeEditModal(); await loadRecipes();
 		}catch(e){ alert(e.message); }
 	}
 
-	async function deleteRecipe(id){ if(!confirm('Delete this recipe?')) return; try{ const res=await fetch('recipes_api.php?action=delete_recipe&recipe_id='+encodeURIComponent(id)); const data=await res.json(); if(!data.ok) throw new Error(data.data||'Delete failed'); await loadRecipes(); } catch(e){ alert(e.message); } }
+	async function deleteRecipe(id){ 
+		if(!confirm('Delete this recipe?')) return; 
+		try{ 
+			const apiUrl = new URL('recipes_api.php', window.location.href);
+			apiUrl.searchParams.set('action', 'delete_recipe');
+			apiUrl.searchParams.set('recipe_id', id);
+			
+			const res = await fetch(apiUrl.toString());
+			
+			// 检查响应状态
+			if(res.status === 404){
+				alert('API file not found');
+				return;
+			}
+			
+			// 检查Content-Type
+			const contentType = res.headers.get('content-type');
+			if(!contentType || !contentType.includes('application/json')){
+				const text = await res.text();
+				alert('API error: ' + text.substring(0, 100));
+				return;
+			}
+			
+			const data = await res.json(); 
+			if(!data.ok) throw new Error(data.data||'Delete failed'); 
+			await loadRecipes(); 
+		} catch(e){ 
+			alert(e.message); 
+		} 
+	}
 
 	// ===== Picker =====
 	function openPicker(){ 
@@ -477,7 +617,29 @@
 			const payload = { name: title, category, nutrition, ingredients };
 			submitBtn.disabled = true; submitBtn.textContent = 'Saving...';
 			try{
-				const res = await fetch('recipes_api.php?action=create_recipe',{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+				const apiUrl = new URL('recipes_api.php', window.location.href);
+				apiUrl.searchParams.set('action', 'create_recipe');
+				
+				const res = await fetch(apiUrl.toString(), { 
+					method:'POST', 
+					headers:{ 'Content-Type':'application/json' }, 
+					body: JSON.stringify(payload) 
+				});
+				
+				// 检查响应状态
+				if(res.status === 404){
+					alert('API file not found');
+					return;
+				}
+				
+				// 检查Content-Type
+				const contentType = res.headers.get('content-type');
+				if(!contentType || !contentType.includes('application/json')){
+					const text = await res.text();
+					alert('API error: ' + text.substring(0, 100));
+					return;
+				}
+				
 				const data = await res.json(); if(!data.ok) throw new Error(data.data||'Create failed');
 				clearCreateEditor(); body.setAttribute('hidden',''); q('#re-card').classList.remove('open'); await loadRecipes();
 			}catch(e){ alert(e.message); }

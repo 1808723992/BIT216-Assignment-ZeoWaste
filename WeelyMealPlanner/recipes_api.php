@@ -1,6 +1,17 @@
 <?php
+// 必须在任何输出之前启动session
+session_start();
+
+// 设置响应头
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, no-store, must-revalidate');
+
+// 检查登录状态（某些操作需要登录）
+$require_auth = false; // 将在需要时设置为true
+$user_id = null;
+if (isset($_SESSION['user_id'])) {
+    $user_id = (int)$_SESSION['user_id'];
+}
 
 require_once __DIR__ . '/api_connect.php'; // $conn (mysqli)
 
@@ -32,10 +43,16 @@ function get_json_body() {
 }
 
 if ($action === 'create_recipe') {
+	// 创建食谱需要登录
+	if (!$user_id) {
+		http_response_code(401);
+		respond(false, 'UNAUTHORIZED: Please login first', 401);
+	}
+	
 	$body = ($method === 'POST') ? (get_json_body() ?: $_POST) : $_GET;
 	$name = trim($body['name'] ?? '');
 	$category = strtoupper(trim($body['category'] ?? 'LUNCH'));
-	$user_id = isset($body['user_id']) ? (int)$body['user_id'] : null;
+	// 使用当前登录用户的ID，忽略请求中的user_id（安全考虑）
 	$instructions = $body['instructions'] ?? null;
 	$nutrition = $body['nutrition'] ?? null;
 	$ingredients = $body['ingredients'] ?? null;
@@ -57,11 +74,13 @@ if ($action === 'create_recipe') {
 
 if ($action === 'list_recipes') {
 	$limit = isset($_GET['limit']) ? max(1, min(100, (int)$_GET['limit'])) : 20;
-	$uid = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
+	// 如果用户已登录，默认只显示该用户的食谱；如果未登录，显示所有食谱
+	$uid = isset($_GET['user_id']) ? (int)$_GET['user_id'] : $user_id;
 	if ($uid) {
 		$stmt = $conn->prepare("SELECT recipe_id, user_id, name, category, instructions, nutrition, ingredients, food_ids, created_at FROM recipes WHERE user_id = ? ORDER BY recipe_id DESC LIMIT ?");
 		$stmt->bind_param('ii', $uid, $limit);
 	} else {
+		// 未登录用户可以看到所有食谱（公共食谱）
 		$stmt = $conn->prepare("SELECT recipe_id, user_id, name, category, instructions, nutrition, ingredients, food_ids, created_at FROM recipes ORDER BY recipe_id DESC LIMIT ?");
 		$stmt->bind_param('i', $limit);
 	}
@@ -98,9 +117,32 @@ if ($action === 'detach_fooditem') {
 }
 
 if ($action === 'update_recipe') {
+	// 更新食谱需要登录
+	if (!$user_id) {
+		http_response_code(401);
+		respond(false, 'UNAUTHORIZED: Please login first', 401);
+	}
+	
 	$body = ($method === 'POST') ? (get_json_body() ?: $_POST) : $_GET;
 	$recipe_id = (int)($body['recipe_id'] ?? 0);
 	if (!$recipe_id) respond(false, 'recipe_id required', 422);
+	
+	// 检查食谱是否属于当前用户
+	$check = $conn->prepare("SELECT user_id FROM recipes WHERE recipe_id = ?");
+	$check->bind_param('i', $recipe_id);
+	$check->execute();
+	$check_result = $check->get_result();
+	if ($check_result->num_rows === 0) {
+		$check->close();
+		respond(false, 'Recipe not found', 404);
+	}
+	$recipe_data = $check_result->fetch_assoc();
+	$check->close();
+	
+	// 只允许用户修改自己的食谱（user_id不为NULL的食谱）
+	if ($recipe_data['user_id'] !== null && $recipe_data['user_id'] != $user_id) {
+		respond(false, 'FORBIDDEN: You can only update your own recipes', 403);
+	}
 	$name = isset($body['name']) ? trim($body['name']) : null;
 	$category = isset($body['category']) ? strtoupper(trim($body['category'])) : null;
 	$instructions = $body['instructions'] ?? null;
@@ -126,8 +168,32 @@ if ($action === 'update_recipe') {
 }
 
 if ($action === 'delete_recipe') {
+	// 删除食谱需要登录
+	if (!$user_id) {
+		http_response_code(401);
+		respond(false, 'UNAUTHORIZED: Please login first', 401);
+	}
+	
 	$rid = (int)($_GET['recipe_id'] ?? $_POST['recipe_id'] ?? 0);
 	if (!$rid) respond(false, 'recipe_id required', 422);
+	
+	// 检查食谱是否属于当前用户
+	$check = $conn->prepare("SELECT user_id FROM recipes WHERE recipe_id = ?");
+	$check->bind_param('i', $rid);
+	$check->execute();
+	$check_result = $check->get_result();
+	if ($check_result->num_rows === 0) {
+		$check->close();
+		respond(false, 'Recipe not found', 404);
+	}
+	$recipe_data = $check_result->fetch_assoc();
+	$check->close();
+	
+	// 只允许用户删除自己的食谱（user_id不为NULL的食谱）
+	if ($recipe_data['user_id'] !== null && $recipe_data['user_id'] != $user_id) {
+		respond(false, 'FORBIDDEN: You can only delete your own recipes', 403);
+	}
+	
 	$stmt = $conn->prepare('DELETE FROM recipes WHERE recipe_id=?');
 	$stmt->bind_param('i', $rid);
 	if (!$stmt->execute()) respond(false, 'Delete failed: '.$stmt->error, 500);
