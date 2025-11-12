@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View Notifications - ZeoWaste</title>
-  <link rel="stylesheet" href="View_Notifications_GUO.css">
+  <link rel="stylesheet" href="ViewNotifications/View_Notifications_GUO.css">
 </head>
 <body>
   <div class="container">
@@ -43,9 +43,8 @@
           <li class="nav-item" data-filter="unread">
             <div class="nav-item-content">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
               </svg>
               <span>Unread</span>
             </div>
@@ -75,11 +74,14 @@
           <li class="nav-item" data-filter="meal-plans">
             <div class="nav-item-content">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 13h12"></path>
-                <path d="M6 17h12"></path>
-                <path d="M12 7v10"></path>
-                <path d="M12 7L8 3"></path>
-                <path d="M12 7l4-4"></path>
+                <path d="M6 2v20"></path>
+                <path d="M6 2l1.5 1.5 1.5-1.5"></path>
+                <path d="M6 6l1.5 1.5 1.5-1.5"></path>
+                <path d="M6 10l1.5 1.5 1.5-1.5"></path>
+                <path d="M18 2v20"></path>
+                <path d="M18 2l-1.5 1.5-1.5-1.5"></path>
+                <path d="M18 6l-1.5 1.5-1.5-1.5"></path>
+                <line x1="6" y1="12" x2="18" y2="12"></line>
               </svg>
               <span>Meal Plans</span>
             </div>
@@ -206,6 +208,8 @@
       </div>
 
       <div class="notification-list" id="notification-list">
+        <!-- Empty state will be inserted here when no notifications -->
+        
         <!-- Food Expired Notification -->
         <div class="notification-item" data-type="expired" data-id="1" data-read="false">
           <input type="checkbox" class="notification-checkbox">
@@ -260,11 +264,14 @@
           <input type="checkbox" class="notification-checkbox">
           <div class="notification-icon mealplan-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2">
-              <path d="M6 13h12"></path>
-              <path d="M6 17h12"></path>
-              <path d="M12 7v10"></path>
-              <path d="M12 7L8 3"></path>
-              <path d="M12 7l4-4"></path>
+              <path d="M6 2v20"></path>
+              <path d="M6 2l1.5 1.5 1.5-1.5"></path>
+              <path d="M6 6l1.5 1.5 1.5-1.5"></path>
+              <path d="M6 10l1.5 1.5 1.5-1.5"></path>
+              <path d="M18 2v20"></path>
+              <path d="M18 2l-1.5 1.5-1.5-1.5"></path>
+              <path d="M18 6l-1.5 1.5-1.5-1.5"></path>
+              <line x1="6" y1="12" x2="18" y2="12"></line>
             </svg>
           </div>
           <div class="notification-content">
@@ -613,11 +620,14 @@
       <div class="details-content" id="details-mealplan" style="display: none;">
         <div class="details-alert mealplan-alert">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2">
-            <path d="M6 13h12"></path>
-            <path d="M6 17h12"></path>
-            <path d="M12 7v10"></path>
-            <path d="M12 7L8 3"></path>
-            <path d="M12 7l4-4"></path>
+            <path d="M6 2v20"></path>
+            <path d="M6 2l1.5 1.5 1.5-1.5"></path>
+            <path d="M6 6l1.5 1.5 1.5-1.5"></path>
+            <path d="M6 10l1.5 1.5 1.5-1.5"></path>
+            <path d="M18 2v20"></path>
+            <path d="M18 2l-1.5 1.5-1.5-1.5"></path>
+            <path d="M18 6l-1.5 1.5-1.5-1.5"></path>
+            <line x1="6" y1="12" x2="18" y2="12"></line>
           </svg>
           <h2 class="details-alert-title mealplan-title">Tomorrow's Meal Plan Reminder</h2>
           <p class="details-alert-time" id="details-mealplan-time">11/5/2025, 9:00:00 PM</p>
@@ -752,6 +762,6 @@
     </div>
   </div>
 
-  <script src="View_Notifications_GUO.js"></script>
+  <script src="ViewNotifications/View_Notifications_GUO.js"></script>
 </body>
 </html>

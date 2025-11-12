@@ -299,10 +299,8 @@ function setActiveFilter(filter) {
   // Render filtered notifications
   renderNotifications();
   
-  // Clear details panel if not showing archived/trash
-  if (filter !== 'archived' && filter !== 'trash') {
-    showPlaceholder();
-  }
+  // Always show placeholder when switching filters (no notification selected)
+  showPlaceholder();
 }
 
 // Render notifications based on current filter
@@ -354,14 +352,56 @@ function renderNotifications() {
   // Clear existing notifications
   notificationList.innerHTML = '';
 
-  // Render notifications
-  filteredNotifications.forEach(notif => {
-    const notificationElement = createNotificationElement(notif);
-    notificationList.appendChild(notificationElement);
-  });
+  // Show empty state if no notifications
+  if (filteredNotifications.length === 0) {
+    showEmptyState(notificationList);
+  } else {
+    // Render notifications
+    filteredNotifications.forEach(notif => {
+      const notificationElement = createNotificationElement(notif);
+      notificationList.appendChild(notificationElement);
+    });
+  }
 
   // Update count
   updateNotificationCount();
+}
+
+// Show empty state message
+function showEmptyState(container) {
+  const emptyState = document.createElement('div');
+  emptyState.className = 'empty-state';
+  
+  // Get appropriate message based on current filter
+  let message = 'No unread notifications';
+  if (currentFilter === 'all') {
+    message = 'No notifications';
+  } else if (currentFilter === 'archived') {
+    message = 'No archived notifications';
+  } else if (currentFilter === 'trash') {
+    message = 'Trash is empty';
+  } else if (currentFilter === 'expired') {
+    message = 'No expired notifications';
+  } else if (currentFilter === 'expiring-soon') {
+    message = 'No expiring soon notifications';
+  } else if (currentFilter === 'meal-plans') {
+    message = 'No meal plan notifications';
+  } else if (currentFilter === 'donations') {
+    message = 'No donation notifications';
+  }
+  
+  emptyState.innerHTML = `
+    <div class="empty-state-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9 12l2 2 4-4"></path>
+      </svg>
+    </div>
+    <div class="empty-state-title">No New Notifications</div>
+    <div class="empty-state-message">${message}</div>
+  `;
+  
+  container.appendChild(emptyState);
 }
 
 // Create notification element
@@ -391,11 +431,14 @@ function createNotificationElement(notif) {
     </svg>`;
   } else if (notif.type === 'meal-plans') {
     iconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2">
-      <path d="M6 13h12"></path>
-      <path d="M6 17h12"></path>
-      <path d="M12 7v10"></path>
-      <path d="M12 7L8 3"></path>
-      <path d="M12 7l4-4"></path>
+      <path d="M6 2v20"></path>
+      <path d="M6 2l1.5 1.5 1.5-1.5"></path>
+      <path d="M6 6l1.5 1.5 1.5-1.5"></path>
+      <path d="M6 10l1.5 1.5 1.5-1.5"></path>
+      <path d="M18 2v20"></path>
+      <path d="M18 2l-1.5 1.5-1.5-1.5"></path>
+      <path d="M18 6l-1.5 1.5-1.5-1.5"></path>
+      <line x1="6" y1="12" x2="18" y2="12"></line>
     </svg>`;
   } else if (notif.type === 'donations') {
     iconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2">
@@ -581,11 +624,14 @@ function showMealPlanDetails(notif) {
       mealItem.className = 'meal-item';
       
       const mealIconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2">
-        <path d="M6 13h12"></path>
-        <path d="M6 17h12"></path>
-        <path d="M12 7v10"></path>
-        <path d="M12 7L8 3"></path>
-        <path d="M12 7l4-4"></path>
+        <path d="M6 2v20"></path>
+        <path d="M6 2l1.5 1.5 1.5-1.5"></path>
+        <path d="M6 6l1.5 1.5 1.5-1.5"></path>
+        <path d="M6 10l1.5 1.5 1.5-1.5"></path>
+        <path d="M18 2v20"></path>
+        <path d="M18 2l-1.5 1.5-1.5-1.5"></path>
+        <path d="M18 6l-1.5 1.5-1.5-1.5"></path>
+        <line x1="6" y1="12" x2="18" y2="12"></line>
       </svg>`;
       
       const ingredientsHTML = meal.ingredients.map(ing => 
