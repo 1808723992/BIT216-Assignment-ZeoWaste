@@ -2,10 +2,41 @@
 	const q = (s, r=document) => r.querySelector(s);
 	const qa = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-	// 获取API基础路径（相对于当前页面）
+	// 获取API基础路径（相对于脚本所在目录）
 	function getApiPath(filename) {
-		// 尝试使用当前页面的路径来构建API路径
+		// 方法1: 尝试从脚本标签获取路径（最可靠）
+		const script = document.currentScript || 
+			Array.from(document.getElementsByTagName('script')).find(s => 
+				(s.src || '').includes('meal_planner.js')
+			);
+		
+		if (script && script.src) {
+			const scriptUrl = new URL(script.src, window.location.origin);
+			let scriptDir = scriptUrl.pathname;
+			// 处理Windows路径分隔符
+			scriptDir = scriptDir.replace(/\\/g, '/');
+			// 获取目录部分
+			scriptDir = scriptDir.substring(0, scriptDir.lastIndexOf('/') + 1);
+			const apiPath = scriptDir + filename;
+			console.log('[getApiPath] From script:', script.src, '-> API path:', apiPath);
+			return apiPath;
+		}
+		
+		// 方法2: 如果脚本路径包含 WeelyMealPlanner，直接使用
 		const currentPath = window.location.pathname;
+		if (currentPath.includes('WeelyMealPlanner')) {
+			const dir = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+			return dir + filename;
+		}
+		
+		// 方法3: 使用固定的相对路径（如果脚本在WeelyMealPlanner目录）
+		// 检查当前路径，如果不在WeelyMealPlanner目录，则使用WeelyMealPlanner/前缀
+		if (!currentPath.includes('WeelyMealPlanner')) {
+			// 如果页面不在WeelyMealPlanner目录，API应该在WeelyMealPlanner目录
+			return 'WeelyMealPlanner/' + filename;
+		}
+		
+		// 方法4: 使用当前页面路径（最后备用方案）
 		const currentDir = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
 		return currentDir + filename;
 	}
@@ -68,17 +99,25 @@
 		if(!currentWeekStart) return;
 		const weekStartStr = formatDate(currentWeekStart);
 		try{
-			// 使用相对于当前页面的路径
+			// 使用相对于脚本的路径
 			const apiPath = getApiPath('meal_plans_api.php');
 			const apiUrl = new URL(apiPath, window.location.origin);
 			apiUrl.searchParams.set('action', 'get_week_plans');
 			apiUrl.searchParams.set('week_start', weekStartStr);
 			
+			// 调试信息
+			console.log('[loadWeekPlans] API URL:', apiUrl.toString());
+			const script = document.currentScript || Array.from(document.getElementsByTagName('script')).find(s => (s.src || '').includes('meal_planner.js'));
+			console.log('[loadWeekPlans] Script path:', script?.src || 'N/A');
+			console.log('[loadWeekPlans] Current page:', window.location.pathname);
+			
 			const res = await fetch(apiUrl.toString());
 			
 			// 检查响应状态
 			if(res.status === 404){
-				console.error('API file not found. Check if meal_plans_api.php exists in WeelyMealPlanner folder.');
+				console.error('[loadWeekPlans] 404 Error - API file not found at:', apiUrl.toString());
+				console.error('[loadWeekPlans] Current page path:', window.location.pathname);
+				console.error('[loadWeekPlans] Script element:', script?.src || 'N/A');
 				return;
 			}
 			
@@ -426,11 +465,20 @@
 			apiUrl.searchParams.set('action', 'list_recipes');
 			apiUrl.searchParams.set('limit', '50');
 			
+			// 调试信息
+			console.log('[loadRecipes] API URL:', apiUrl.toString());
+			console.log('[loadRecipes] Script path:', document.currentScript?.src || 'N/A');
+			console.log('[loadRecipes] Current page:', window.location.pathname);
+			
 			const res = await fetch(apiUrl.toString());
 			
 			// 检查响应状态
 			if(res.status === 404){
-				list.innerHTML = '<div class="period">API file not found</div>';
+				console.error('[loadRecipes] 404 Error - API file not found at:', apiUrl.toString());
+				console.error('[loadRecipes] Current page path:', window.location.pathname);
+				const script = document.currentScript || Array.from(document.getElementsByTagName('script')).find(s => (s.src || '').includes('meal_planner.js'));
+				console.error('[loadRecipes] Script element:', script?.src || 'N/A');
+				list.innerHTML = '<div class="period">API file not found. Check console (F12) for details.</div>';
 				return;
 			}
 			
