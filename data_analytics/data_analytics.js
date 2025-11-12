@@ -34,6 +34,52 @@
 
   let trendChart, categoryBar, categoryPie;
 
+  function renderTopCategories(catObj){
+    const usedList = document.getElementById('topUsedList');
+    const donatedList = document.getElementById('topDonatedList');
+    const discardedList = document.getElementById('topDiscardedList');
+    if(!usedList || !donatedList || !discardedList) return;
+
+    const entries = Object.entries(catObj || {});
+
+    const makeTop = (key) => {
+      return entries
+        .map(([name, data]) => ({ name, count: Number((data && data[key]) || 0) }))
+        .filter(item => item.count > 0)
+        .sort((a,b) => b.count - a.count || a.name.localeCompare(b.name))
+        .slice(0,4);
+    };
+
+    const renderList = (listEl, items) => {
+      listEl.innerHTML = '';
+      if(!items.length){
+        const li = document.createElement('li');
+        li.className = 'empty';
+        li.textContent = 'No data yet.';
+        listEl.appendChild(li);
+        return;
+      }
+      items.forEach((item, index) => {
+        const li = document.createElement('li');
+        const rank = document.createElement('span');
+        rank.className = 'rank';
+        rank.textContent = String(index + 1);
+        const name = document.createElement('span');
+        name.className = 'name';
+        name.textContent = item.name || '—';
+        const count = document.createElement('span');
+        count.className = 'count';
+        count.textContent = String(item.count);
+        li.append(rank, name, count);
+        listEl.appendChild(li);
+      });
+    };
+
+    renderList(usedList, makeTop('used'));
+    renderList(donatedList, makeTop('donated'));
+    renderList(discardedList, makeTop('discarded'));
+  }
+
   function formatYMD(d){
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth()+1).padStart(2,'0');
@@ -251,6 +297,8 @@
           }
         });
       }
+
+      renderTopCategories(cats);
   }
 
   applyBtn.addEventListener('click', loadAll);
