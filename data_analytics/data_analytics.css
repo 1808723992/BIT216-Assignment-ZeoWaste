@@ -43,3 +43,11 @@ body{margin:0;background:linear-gradient(180deg,#f6fff8,#f0fff5);font-family:Seg
   .charts{grid-template-columns:1fr}
 }
 
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  transition: 0.2s ease;
+}
+.btn:hover {
+  background-color: #188b4a;
+}
