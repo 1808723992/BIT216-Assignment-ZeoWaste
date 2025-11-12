@@ -5,8 +5,11 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Weekly Meal Planner</title>
 	<link rel="stylesheet" href="WeelyMealPlanner/meal_planner.css">
+	<link rel="stylesheet" href="BrowseFoodItem/BrowseFoodItem.css" />
 </head>
 <body>
+	<script src="Homepage/load_nav.js"></script>
+
 	<div class="main">
 		<div class="header">
 			<div class="header-left">
@@ -327,5 +330,13 @@
 	</div>
 
 	<script src="WeelyMealPlanner/meal_planner.js"></script>
+
+	<div id="footer-placeholder"></div>
+  	<script>
+   	 fetch("BrowseFoodItem/footer.html")
+ 	     .then(res => res.text())
+	      .then(data => (document.getElementById("footer-placeholder").innerHTML = data))
+	      .catch(err => console.error("页脚加载失败:", err));
+	</script>
 </body>
 </html>
