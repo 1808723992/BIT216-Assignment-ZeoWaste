@@ -33,3 +33,5 @@ if (!empty($ids)) {
 } else {
     echo sprintf("[%s] No notifications to delete.\n", date('c'));
 }
+
+

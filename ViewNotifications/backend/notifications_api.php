@@ -272,3 +272,5 @@ function permanentlyDelete(mysqli $conn, int $userId, array $ids): void
     $stmt->bind_param($types, ...$params);
     $stmt->execute();
 }
+
+

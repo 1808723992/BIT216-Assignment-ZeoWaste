@@ -171,3 +171,5 @@ function notificationExists(mysqli $conn, int $userId, ?int $foodId, string $typ
 
     return $result->fetch_assoc() !== null;
 }
+
+
