@@ -2,9 +2,7 @@
 // ViewNotifications/backend/cleanup_trash.php
 // Run this script daily via cron to purge trashed notifications past their delete_after timestamp.
 
-require_once __DIR__ . '/../../config/db.php'; // Adjust path to your DB bootstrap
-
-declare(strict_types=1);
+require_once __DIR__ . '/../../connect.php'; // Adjust path to your DB bootstrap
 
 $sql = "SELECT notification_id
         FROM notifications

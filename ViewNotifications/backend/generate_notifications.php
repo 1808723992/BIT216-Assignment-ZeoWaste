@@ -2,9 +2,7 @@
 // ViewNotifications/backend/generate_notifications.php
 // Run this script via cron (e.g., hourly) to generate notifications from fooditems data.
 
-require_once __DIR__ . '/../../config/db.php'; // Adjust path if needed
-
-declare(strict_types=1);
+require_once __DIR__ . '/../../connect.php'; // Adjust path if needed
 
 // --- configuration ---
 $EXPIRING_WINDOW_DAYS = 3; // notify items expiring within the next 3 days
@@ -56,6 +54,7 @@ function notifyExpiringSoon(mysqli $conn, int $daysAhead): void
 function notifyDonations(mysqli $conn): void
 {
     $sql = "SELECT d.donation_id, d.food_item_id AS food_id, f.user_id, f.food_name, f.food_expiry_date,
+                   f.food_storage,
                    d.pickup_location, d.availability, d.donation_status, d.created_at, d.completed_at, d.withdrawn_at
             FROM donations d
             INNER JOIN fooditems f ON f.food_id = d.food_item_id
@@ -89,6 +88,8 @@ function notifyDonations(mysqli $conn): void
                 'donationCreatedAt' => $row['created_at'],
                 'donationCompletedAt' => $row['completed_at'],
                 'donationWithdrawnAt' => $row['withdrawn_at'],
+                'expiryDate' => $row['food_expiry_date'],
+                'storageLocation' => $row['food_storage'],
             ],
         ]);
     }
@@ -97,7 +98,7 @@ function notifyDonations(mysqli $conn): void
 function notifyNewFood(mysqli $conn): void
 {
     $sql = "SELECT f.food_id, f.user_id, f.food_name, f.food_quantity, f.food_category,
-                   f.food_status, f.created_at
+                   f.food_status, f.created_at, f.food_expiry_date, f.food_storage
             FROM fooditems f
             WHERE f.created_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)";
 
@@ -112,6 +113,8 @@ function notifyNewFood(mysqli $conn): void
                 'category' => $row['food_category'],
                 'status' => $row['food_status'],
                 'createdAt' => $row['created_at'],
+                'expiryDate' => $row['food_expiry_date'],
+                'storageLocation' => $row['food_storage'],
             ],
         ]);
     }
@@ -122,10 +125,6 @@ function createNotificationIfNotExists(mysqli $conn, array $row, string $type, a
     $userId = (int) $row['user_id'];
     $foodId = isset($row['food_id']) ? (int) $row['food_id'] : null;
 
-    if (notificationExists($conn, $userId, $foodId, $type)) {
-        return;
-    }
-
     $title = $options['title'] ?? ucfirst($type);
     $message = $options['message'] ?? null;
     $payload = $options['payload'] ?? [
@@ -133,12 +132,23 @@ function createNotificationIfNotExists(mysqli $conn, array $row, string $type, a
         'storageLocation' => $row['food_storage'] ?? null,
     ];
 
+    $existingId = findExistingNotification($conn, $userId, $foodId, $type);
+
     $sql = "INSERT INTO notifications (user_id, food_id, type, title, subtitle, message, payload)
             VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
 
     $subtitle = $row['food_name'] ?? null;
     $payloadJson = json_encode($payload, JSON_UNESCAPED_UNICODE);
+
+    if ($existingId !== null) {
+        $update = $conn->prepare("UPDATE notifications
+                                   SET title = ?, message = ?, payload = ?, updated_at = NOW()
+                                   WHERE notification_id = ?");
+        $update->bind_param('sssi', $title, $message, $payloadJson, $existingId);
+        $update->execute();
+        return;
+    }
 
     $stmt->bind_param(
         'iisssss',
@@ -154,9 +164,9 @@ function createNotificationIfNotExists(mysqli $conn, array $row, string $type, a
     $stmt->execute();
 }
 
-function notificationExists(mysqli $conn, int $userId, ?int $foodId, string $type): bool
+function findExistingNotification(mysqli $conn, int $userId, ?int $foodId, string $type): ?int
 {
-    $sql = "SELECT 1 FROM notifications
+    $sql = "SELECT notification_id FROM notifications
             WHERE user_id = ?
               AND type = ?
               AND (? IS NULL OR food_id = ?)
@@ -169,7 +179,11 @@ function notificationExists(mysqli $conn, int $userId, ?int $foodId, string $typ
     $stmt->execute();
     $result = $stmt->get_result();
 
-    return $result->fetch_assoc() !== null;
+    if ($row = $result->fetch_assoc()) {
+        return (int) $row['notification_id'];
+    }
+
+    return null;
 }
 
 

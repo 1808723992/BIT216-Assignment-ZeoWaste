@@ -6,7 +6,7 @@ session_start();
 
 header('Content-Type: application/json; charset=utf-8');
 
-require_once __DIR__ . '/../../config/db.php'; // Adjust this path to your actual DB bootstrap file
+require_once __DIR__ . '/../../connect.php'; // Adjust this path to your actual DB bootstrap file
 
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
@@ -143,7 +143,12 @@ function fetchNotifications(mysqli $conn, int $userId, string $filter, int $page
             LIMIT ?, ?";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types . 'ii', ...$params, $offset, $pageSize);
+
+    $types .= 'ii';
+    $params[] = $offset;
+    $params[] = $pageSize;
+
+    $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $result = $stmt->get_result();
 
