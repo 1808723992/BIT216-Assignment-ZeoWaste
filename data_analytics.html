@@ -6,6 +6,7 @@
     <title>Track My Impact</title>
     <link rel="stylesheet" href="data_analytics/data_analytics.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body>
     <header class="page-header">
@@ -41,7 +42,13 @@
             </div>
             <div class="card-title">Used Before Expiry</div>
             <div class="card-value" id="usedTotal">0</div>
-            <div class="card-note" id="usedNote">—</div>
+            <div class="card-desc">Items consumed successfully</div>
+            <div class="card-note">
+                <span class="card-note-icon green">
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12l4-4 3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 6h4v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="card-note-text" id="usedNote">Great job reducing waste!</span>
+            </div>
         </div>
         <div class="card" id="card-donated">
             <div class="card-icon blue">
@@ -49,7 +56,13 @@
             </div>
             <div class="card-title">Donated</div>
             <div class="card-value" id="donatedTotal">0</div>
-            <div class="card-note" id="donatedNote">—</div>
+            <div class="card-desc">Items shared with others</div>
+            <div class="card-note">
+                <span class="card-note-icon blue">
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 17s-5-3.1-5-7.2a3 3 0 0 1 5-2 3 3 0 0 1 5 2c0 4.1-5 7.2-5 7.2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="card-note-text" id="donatedNote">Making a difference!</span>
+            </div>
         </div>
         <div class="card" id="card-discarded">
             <div class="card-icon orange">
@@ -57,7 +70,13 @@
             </div>
             <div class="card-title">Discarded / Expired</div>
             <div class="card-value" id="discardedTotal">0</div>
-            <div class="card-note" id="discardedNote">—</div>
+            <div class="card-desc">Items thrown away</div>
+            <div class="card-note">
+                <span class="card-note-icon orange">
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 6h10M8 6V4h4v2m1 0-.8 9.6a1.5 1.5 0 0 1-1.5 1.4H8.3a1.5 1.5 0 0 1-1.5-1.4L6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="card-note-text" id="discardedNote">Low waste level</span>
+            </div>
         </div>
         <div class="card" id="card-inventory">
             <div class="card-icon purple">
@@ -65,7 +84,13 @@
             </div>
             <div class="card-title">Current Inventory</div>
             <div class="card-value" id="inventoryTotal">0</div>
-            <div class="card-note" id="inventoryNote">—</div>
+            <div class="card-desc">Items in stock now</div>
+            <div class="card-note">
+                <span class="card-note-icon purple">
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6.5 10 3l6 3.5v7L10 17l-6-3.5v-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 10.5 4 7.2M10 10.5l6-3.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </span>
+                <span class="card-note-text" id="inventoryNote">Well-stocked</span>
+            </div>
         </div>
     </section>
 
@@ -102,7 +127,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3a9 9 0 1 0 9 9h-9V3Z" stroke="#1f7a45" stroke-width="2"/></svg>
                 </span>
                 <h3>Category Distribution</h3>
-                <p>Total actions across all categories</p>
+                <p>Total Items across all categories</p>
             </div>
             <canvas id="categoryPie" height="160"></canvas>
             <div class="empty" id="pieEmpty">No distribution data in this period.</div>
