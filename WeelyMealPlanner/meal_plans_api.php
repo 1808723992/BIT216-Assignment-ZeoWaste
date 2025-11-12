@@ -95,37 +95,48 @@ if ($action === 'add_meal_plan') {
             // 如果计划已存在，使用现有的plan_id
             $plan_id = $existing_plan['plan_id'];
             
-            // 将之前关联到该计划的食谱的plan_id设为NULL
-            $update_old = $conn->prepare("UPDATE recipes SET plan_id = NULL WHERE plan_id = ?");
-            $update_old->bind_param('i', $plan_id);
-            $update_old->execute();
-            $update_old->close();
+            // 获取现有的recipe_ids JSON数组
+            $get_recipe_ids = $conn->prepare("SELECT recipe_ids FROM meal_plans WHERE plan_id = ?");
+            $get_recipe_ids->bind_param('i', $plan_id);
+            $get_recipe_ids->execute();
+            $result = $get_recipe_ids->get_result();
+            $row = $result->fetch_assoc();
+            $get_recipe_ids->close();
             
-            // 更新计划的更新时间
-            $update_plan = $conn->prepare("UPDATE meal_plans SET updated_at = NOW() WHERE plan_id = ?");
-            $update_plan->bind_param('i', $plan_id);
+            // 解析现有的recipe_ids（如果存在）
+            $recipe_ids = [];
+            if ($row && $row['recipe_ids']) {
+                $decoded = json_decode($row['recipe_ids'], true);
+                if (is_array($decoded)) {
+                    $recipe_ids = $decoded;
+                }
+            }
+            
+            // 如果食谱ID不在数组中，添加它（支持一个食谱添加到多个计划）
+            if (!in_array($recipe_id, $recipe_ids, true)) {
+                $recipe_ids[] = $recipe_id;
+            }
+            
+            // 更新计划的recipe_ids和更新时间
+            $recipe_ids_json = json_encode($recipe_ids, JSON_UNESCAPED_UNICODE);
+            $update_plan = $conn->prepare("UPDATE meal_plans SET recipe_ids = ?, updated_at = NOW() WHERE plan_id = ?");
+            $update_plan->bind_param('si', $recipe_ids_json, $plan_id);
             $update_plan->execute();
             $update_plan->close();
         } else {
-            // 如果计划不存在，创建新计划
-            $insert_sql = "INSERT INTO meal_plans (user_id, meal_date, meal_slot, created_at, updated_at) 
-                          VALUES (?, ?, ?, NOW(), NOW())";
+            // 如果计划不存在，创建新计划，recipe_ids包含当前食谱ID
+            $recipe_ids = [$recipe_id];
+            $recipe_ids_json = json_encode($recipe_ids, JSON_UNESCAPED_UNICODE);
+            $insert_sql = "INSERT INTO meal_plans (user_id, meal_date, meal_slot, recipe_ids, created_at, updated_at) 
+                          VALUES (?, ?, ?, ?, NOW(), NOW())";
             $insert_stmt = $conn->prepare($insert_sql);
-            $insert_stmt->bind_param('iss', $user_id, $meal_date, $meal_slot);
+            $insert_stmt->bind_param('isss', $user_id, $meal_date, $meal_slot, $recipe_ids_json);
             if (!$insert_stmt->execute()) {
                 throw new Exception('Failed to create meal plan: ' . $insert_stmt->error);
             }
             $plan_id = $insert_stmt->insert_id;
             $insert_stmt->close();
         }
-        
-        // 2. 将食谱的plan_id更新为这个plan_id
-        $update_recipe = $conn->prepare("UPDATE recipes SET plan_id = ? WHERE recipe_id = ?");
-        $update_recipe->bind_param('ii', $plan_id, $recipe_id);
-        if (!$update_recipe->execute()) {
-            throw new Exception('Failed to update recipe: ' . $update_recipe->error);
-        }
-        $update_recipe->close();
         
         // 提交事务
         $conn->commit();
@@ -228,13 +239,7 @@ if ($action === 'remove_meal_plan') {
             throw new Exception('Either plan_id or (meal_date and meal_slot) is required');
         }
         
-        // 先更新相关食谱的plan_id为NULL（虽然ON DELETE SET NULL会自动处理，但显式处理更清晰）
-        $update_recipes = $conn->prepare("UPDATE recipes SET plan_id = NULL WHERE plan_id = ?");
-        $update_recipes->bind_param('i', $plan_id);
-        $update_recipes->execute();
-        $update_recipes->close();
-        
-        // 删除计划（由于ON DELETE SET NULL，recipes的plan_id会自动设为NULL）
+        // 删除计划（recipe_ids会自动随计划删除）
         $delete = $conn->prepare("DELETE FROM meal_plans WHERE plan_id = ? AND user_id = ?");
         $delete->bind_param('ii', $plan_id, $user_id);
         if (!$delete->execute()) {
@@ -307,36 +312,47 @@ if ($action === 'batch_add_meal_plans') {
                 // 使用现有计划
                 $plan_id = $existing_plan['plan_id'];
                 
-                // 清除之前关联的食谱
-                $clear = $conn->prepare("UPDATE recipes SET plan_id = NULL WHERE plan_id = ?");
-                $clear->bind_param('i', $plan_id);
-                $clear->execute();
-                $clear->close();
+                // 获取现有的recipe_ids JSON数组
+                $get_recipe_ids = $conn->prepare("SELECT recipe_ids FROM meal_plans WHERE plan_id = ?");
+                $get_recipe_ids->bind_param('i', $plan_id);
+                $get_recipe_ids->execute();
+                $result = $get_recipe_ids->get_result();
+                $row = $result->fetch_assoc();
+                $get_recipe_ids->close();
                 
-                // 更新计划
-                $update = $conn->prepare("UPDATE meal_plans SET updated_at = NOW() WHERE plan_id = ?");
-                $update->bind_param('i', $plan_id);
+                // 解析现有的recipe_ids（如果存在）
+                $recipe_ids = [];
+                if ($row && $row['recipe_ids']) {
+                    $decoded = json_decode($row['recipe_ids'], true);
+                    if (is_array($decoded)) {
+                        $recipe_ids = $decoded;
+                    }
+                }
+                
+                // 如果食谱ID不在数组中，添加它
+                if (!in_array($recipe_id, $recipe_ids, true)) {
+                    $recipe_ids[] = $recipe_id;
+                }
+                
+                // 更新计划的recipe_ids和更新时间
+                $recipe_ids_json = json_encode($recipe_ids, JSON_UNESCAPED_UNICODE);
+                $update = $conn->prepare("UPDATE meal_plans SET recipe_ids = ?, updated_at = NOW() WHERE plan_id = ?");
+                $update->bind_param('si', $recipe_ids_json, $plan_id);
                 $update->execute();
                 $update->close();
             } else {
-                // 创建新计划
-                $insert = $conn->prepare("INSERT INTO meal_plans (user_id, meal_date, meal_slot, created_at, updated_at) 
-                                         VALUES (?, ?, ?, NOW(), NOW())");
-                $insert->bind_param('iss', $user_id, $meal_date, $meal_slot);
+                // 创建新计划，recipe_ids包含当前食谱ID
+                $recipe_ids = [$recipe_id];
+                $recipe_ids_json = json_encode($recipe_ids, JSON_UNESCAPED_UNICODE);
+                $insert = $conn->prepare("INSERT INTO meal_plans (user_id, meal_date, meal_slot, recipe_ids, created_at, updated_at) 
+                                         VALUES (?, ?, ?, ?, NOW(), NOW())");
+                $insert->bind_param('isss', $user_id, $meal_date, $meal_slot, $recipe_ids_json);
                 if (!$insert->execute()) {
                     throw new Exception('Failed to create meal plan: ' . $insert->error);
                 }
                 $plan_id = $insert->insert_id;
                 $insert->close();
             }
-            
-            // 更新食谱的plan_id
-            $update_recipe = $conn->prepare("UPDATE recipes SET plan_id = ? WHERE recipe_id = ?");
-            $update_recipe->bind_param('ii', $plan_id, $recipe_id);
-            if (!$update_recipe->execute()) {
-                throw new Exception('Failed to update recipe: ' . $update_recipe->error);
-            }
-            $update_recipe->close();
         }
         
         $conn->commit();
@@ -364,11 +380,10 @@ if ($action === 'get_week_plans') {
     // 计算周日（一周的最后一天）
     $week_end = date('Y-m-d', strtotime($week_start . ' +6 days'));
     
-    $sql = "SELECT mp.plan_id, mp.meal_date, mp.meal_slot, 
-                   r.recipe_id, r.name AS recipe_name, r.category AS recipe_category,
-                   r.nutrition, r.ingredients
+    // 使用 meal_plans.recipe_ids JSON字段来关联食谱
+    // 先获取所有计划，然后在PHP中处理JSON（兼容MySQL 5.7+）
+    $sql = "SELECT mp.plan_id, mp.meal_date, mp.meal_slot, mp.recipe_ids
             FROM meal_plans mp
-            LEFT JOIN recipes r ON mp.plan_id = r.plan_id
             WHERE mp.user_id = ? AND mp.meal_date BETWEEN ? AND ?
             ORDER BY mp.meal_date ASC, 
                      FIELD(mp.meal_slot, 'Breakfast', 'Lunch', 'Dinner', 'Snacks')";
@@ -381,17 +396,90 @@ if ($action === 'get_week_plans') {
     
     $result = $stmt->get_result();
     $plans = [];
+    
+    // 收集所有需要查询的食谱ID
+    $all_recipe_ids = [];
+    $plan_data = [];
+    
     while ($row = $result->fetch_assoc()) {
-        // 解析JSON字段
-        if ($row['nutrition']) {
-            $row['nutrition'] = json_decode($row['nutrition'], true);
+        $plan_data[] = $row;
+        // 解析recipe_ids JSON数组
+        if ($row['recipe_ids']) {
+            $recipe_ids = json_decode($row['recipe_ids'], true);
+            if (is_array($recipe_ids)) {
+                $all_recipe_ids = array_merge($all_recipe_ids, $recipe_ids);
+            }
         }
-        if ($row['ingredients']) {
-            $row['ingredients'] = json_decode($row['ingredients'], true);
-        }
-        $plans[] = $row;
     }
     $stmt->close();
+    
+    // 去重并查询所有食谱信息
+    $all_recipe_ids = array_unique($all_recipe_ids);
+    $recipes_map = [];
+    
+    if (!empty($all_recipe_ids)) {
+        $placeholders = implode(',', array_fill(0, count($all_recipe_ids), '?'));
+        $recipes_sql = "SELECT recipe_id, name, category, nutrition, ingredients 
+                       FROM recipes 
+                       WHERE recipe_id IN ($placeholders)";
+        $recipes_stmt = $conn->prepare($recipes_sql);
+        $recipes_stmt->bind_param(str_repeat('i', count($all_recipe_ids)), ...$all_recipe_ids);
+        $recipes_stmt->execute();
+        $recipes_result = $recipes_stmt->get_result();
+        
+        while ($recipe = $recipes_result->fetch_assoc()) {
+            // 解析JSON字段
+            if ($recipe['nutrition']) {
+                $recipe['nutrition'] = json_decode($recipe['nutrition'], true);
+            }
+            if ($recipe['ingredients']) {
+                $recipe['ingredients'] = json_decode($recipe['ingredients'], true);
+            }
+            $recipes_map[$recipe['recipe_id']] = $recipe;
+        }
+        $recipes_stmt->close();
+    }
+    
+    // 组合计划和食谱数据
+    foreach ($plan_data as $plan) {
+        $recipe_ids = [];
+        if ($plan['recipe_ids']) {
+            $decoded = json_decode($plan['recipe_ids'], true);
+            if (is_array($decoded)) {
+                $recipe_ids = $decoded;
+            }
+        }
+        
+        // 为每个食谱ID创建一条记录
+        if (empty($recipe_ids)) {
+            // 如果没有食谱，仍然返回计划信息
+            $plans[] = [
+                'plan_id' => $plan['plan_id'],
+                'meal_date' => $plan['meal_date'],
+                'meal_slot' => $plan['meal_slot'],
+                'recipe_id' => null,
+                'recipe_name' => null,
+                'recipe_category' => null,
+                'nutrition' => null,
+                'ingredients' => null
+            ];
+        } else {
+            foreach ($recipe_ids as $recipe_id) {
+                $recipe = $recipes_map[$recipe_id] ?? null;
+                $plans[] = [
+                    'plan_id' => $plan['plan_id'],
+                    'meal_date' => $plan['meal_date'],
+                    'meal_slot' => $plan['meal_slot'],
+                    'recipe_id' => $recipe ? $recipe['recipe_id'] : $recipe_id,
+                    'recipe_name' => $recipe ? $recipe['name'] : null,
+                    'recipe_category' => $recipe ? $recipe['category'] : null,
+                    'nutrition' => $recipe ? $recipe['nutrition'] : null,
+                    'ingredients' => $recipe ? $recipe['ingredients'] : null
+                ];
+            }
+        }
+    }
+    
     respond(true, $plans);
 }
 
