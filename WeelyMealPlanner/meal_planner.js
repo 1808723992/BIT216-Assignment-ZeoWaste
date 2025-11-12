@@ -3,6 +3,9 @@
 	const qa = (s, r=document) => Array.from(r.querySelectorAll(s));
 
 	let editingRecipeId = null; // 当前编辑的 recipe_id
+	let currentRecipeId = null; // 当前在详情模态框中选择的食谱ID
+	let currentWeekStart = null; // 当前周的开始日期
+	let mealPlans = {}; // 存储餐食计划 { "2025-11-12-Breakfast": { plan_id, recipe_id, recipe_name, ... } }
 
 	function formatDate(date){
 		const y = date.getFullYear();
@@ -28,6 +31,7 @@
 	}
 
 	function updateWeek(start){
+		currentWeekStart = start;
 		const period = q('#period-text');
 		if(period){ period.textContent = formatPeriod(start); }
 		qa('.date[data-day-offset]').forEach(el => {
@@ -38,6 +42,8 @@
 		});
 		const dateInput = q('#mm-date');
 		if(dateInput){ dateInput.value = formatDate(start); }
+		// 重新加载周计划
+		loadWeekPlans();
 	}
 
 	function setupWeekSwitching(){
@@ -47,6 +53,105 @@
 		const next = q('#next-week');
 		if(prev){ prev.addEventListener('click', () => { currentStart.setDate(currentStart.getDate()-7); updateWeek(currentStart); }); }
 		if(next){ next.addEventListener('click', () => { currentStart.setDate(currentStart.getDate()+7); updateWeek(currentStart); }); }
+	}
+
+	// ===== 加载周计划 =====
+	async function loadWeekPlans(){
+		if(!currentWeekStart) return;
+		const weekStartStr = formatDate(currentWeekStart);
+		try{
+			const res = await fetch(`meal_plans_api.php?action=get_week_plans&week_start=${weekStartStr}`);
+			
+			// 检查是否是401未授权错误
+			if(res.status === 401){
+				alert('Please login first');
+				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
+			const data = await res.json();
+			if(!data.ok) throw new Error(data.data || 'Load failed');
+			
+			// 清空之前的计划
+			mealPlans = {};
+			
+			// 存储计划数据
+			const plans = Array.isArray(data.data) ? data.data : [];
+			plans.forEach(plan => {
+				if(plan.meal_date && plan.meal_slot && plan.recipe_id){
+					const key = `${plan.meal_date}-${plan.meal_slot}`;
+					mealPlans[key] = plan;
+				}
+			});
+			
+			// 更新表格显示
+			updateMealPlansDisplay();
+		}catch(e){
+			console.error('Failed to load week plans:', e);
+		}
+	}
+
+	// ===== 更新餐食计划显示 =====
+	function updateMealPlansDisplay(){
+		if(!currentWeekStart) return;
+		
+		const mealSlots = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
+		const tbody = q('.table tbody');
+		if(!tbody) return;
+		
+		// 获取所有行
+		const rows = qa('.table tbody tr');
+		if(rows.length === 0) return;
+		
+		rows.forEach((row, rowIdx) => {
+			if(rowIdx >= mealSlots.length) return;
+			const mealSlot = mealSlots[rowIdx];
+			
+			// 获取该行的所有单元格（包括第一列标签，需要跳过）
+			const allCells = qa('td', row);
+			// 跳过第一列（标签列），只处理数据单元格
+			const cells = allCells.slice(1);
+			
+			if(cells.length === 0) return;
+			
+			cells.forEach((cell, cellIdx) => {
+				// 计算日期
+				const date = new Date(currentWeekStart);
+				date.setDate(date.getDate() + cellIdx);
+				const dateStr = formatDate(date);
+				const key = `${dateStr}-${mealSlot}`;
+				
+				const plan = mealPlans[key];
+				
+				if(plan && plan.recipe_name){
+					// 显示食谱名称
+					cell.innerHTML = `
+						<div class="meal-item" data-plan-id="${plan.plan_id}" data-date="${dateStr}" data-slot="${mealSlot}">
+							<span class="meal-name">${plan.recipe_name}</span>
+							<button class="meal-remove" title="Remove" aria-label="Remove">×</button>
+						</div>
+					`;
+					// 添加删除按钮事件
+					const removeBtn = cell.querySelector('.meal-remove');
+					if(removeBtn){
+						removeBtn.addEventListener('click', (e) => {
+							e.stopPropagation();
+							removeMealPlan(plan.plan_id, dateStr, mealSlot);
+						});
+					}
+				} else {
+					// 显示添加按钮
+					cell.innerHTML = `<span class="add-link" data-date="${dateStr}" data-slot="${mealSlot}">+ Add</span>`;
+					// 添加点击事件
+					const addLink = cell.querySelector('.add-link');
+					if(addLink){
+						addLink.addEventListener('click', () => {
+							openPickerForSlot(dateStr, mealSlot);
+						});
+					}
+				}
+			});
+		});
 	}
 
 	function setupSearch(){
@@ -59,8 +164,9 @@
 	}
 
 	// ===== Details modal =====
-	function openModalFromRecipe(recipe){
+	function openModalFromRecipe(recipe, targetDate = null, targetSlot = null){
 		const overlay = q('#meal-modal'); if(!overlay) return;
+		currentRecipeId = recipe.recipe_id;
 		q('#mm-title').textContent = recipe.name || 'Recipe';
 		q('#mm-type').textContent = (recipe.category||'').toUpperCase();
 		q('#mm-match').textContent = '';
@@ -71,18 +177,176 @@
 		const tbody = q('#mm-ingredients'); tbody.innerHTML = '';
 		const rows = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
 		rows.forEach(r => { const tr = document.createElement('tr'); const name = r.name || '-'; const req = r.amount || '-'; tr.innerHTML = `<td>${name}</td><td>${req}</td><td>-</td><td>-</td>`; tbody.appendChild(tr); });
+		
+		// 如果提供了目标日期和时段，设置表单
+		if(targetDate){
+			const dateInput = q('#mm-date');
+			if(dateInput) dateInput.value = targetDate;
+		}
+		if(targetSlot){
+			const slotInput = q('#mm-slot');
+			if(slotInput) slotInput.value = targetSlot;
+		}
+		
 		overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false');
 	}
 
-	function closeModal(){ const overlay = q('#meal-modal'); if(overlay){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); } }
-	function setupModal(){ const overlay = q('#meal-modal'); const closeBtn = q('.mm-close'); if(closeBtn){ closeBtn.addEventListener('click', closeModal); } if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeModal(); }); } document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); }); const addBtn = q('#mm-add'); if(addBtn){ addBtn.addEventListener('click', ()=>{ alert('占位交互：已添加到计划'); closeModal(); }); } }
+	function closeModal(){ const overlay = q('#meal-modal'); if(overlay){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); currentRecipeId = null; } }
+	
+	function setupModal(){ 
+		const overlay = q('#meal-modal'); 
+		const closeBtn = q('.mm-close'); 
+		if(closeBtn){ closeBtn.addEventListener('click', closeModal); } 
+		if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeModal(); }); } 
+		document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); }); 
+		const addBtn = q('#mm-add'); 
+		if(addBtn){ 
+			addBtn.addEventListener('click', async () => {
+				if(!currentRecipeId){
+					alert('No recipe selected');
+					return;
+				}
+				const mealDate = q('#mm-date')?.value;
+				const mealSlot = q('#mm-slot')?.value;
+				if(!mealDate || !mealSlot){
+					alert('Please select date and meal slot');
+					return;
+				}
+				await addMealPlan(currentRecipeId, mealDate, mealSlot);
+				closeModal();
+			}); 
+		} 
+	}
+
+	// ===== 添加餐食计划 =====
+	async function addMealPlan(recipeId, mealDate, mealSlot){
+		try{
+			const res = await fetch('meal_plans_api.php?action=add_meal_plan', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					recipe_id: recipeId,
+					meal_date: mealDate,
+					meal_slot: mealSlot
+				})
+			});
+			
+			// 检查是否是401未授权错误
+			if(res.status === 401){
+				alert('Please login first');
+				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
+			const data = await res.json();
+			if(!data.ok) throw new Error(data.data || 'Failed to add meal plan');
+			
+			// 重新加载周计划
+			await loadWeekPlans();
+		}catch(e){
+			alert('Failed to add meal plan: ' + e.message);
+			throw e;
+		}
+	}
+
+	// ===== 删除餐食计划 =====
+	async function removeMealPlan(planId, mealDate, mealSlot){
+		if(!confirm('Remove this meal from your plan?')) return;
+		try{
+			const res = await fetch('meal_plans_api.php?action=remove_meal_plan', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					plan_id: planId
+				})
+			});
+			
+			// 检查是否是401未授权错误
+			if(res.status === 401){
+				alert('Please login first');
+				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
+			const data = await res.json();
+			if(!data.ok) throw new Error(data.data || 'Failed to remove meal plan');
+			
+			// 重新加载周计划
+			await loadWeekPlans();
+		}catch(e){
+			alert('Failed to remove meal plan: ' + e.message);
+		}
+	}
+
+	// ===== 为特定时段打开选择器 =====
+	function openPickerForSlot(date, slot){
+		const overlay = q('#picker-modal'); 
+		if(!overlay) return;
+		
+		// 加载食谱列表到picker
+		loadRecipesForPicker(date, slot);
+		
+		overlay.classList.add('show'); 
+		overlay.setAttribute('aria-hidden','false');
+	}
+	
+	// ===== 为picker加载食谱 =====
+	async function loadRecipesForPicker(targetDate, targetSlot){
+		const list = q('#picker-list');
+		if(!list) return;
+		list.innerHTML = '<div class="period">Loading recipes...</div>';
+		try{
+			const res = await fetch('recipes_api.php?action=list_recipes&limit=50');
+			
+			// 检查是否是401未授权错误
+			if(res.status === 401){
+				alert('Please login first');
+				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
+			const data = await res.json();
+			if(!data.ok) throw new Error(data.data || 'Load failed');
+			const arr = Array.isArray(data.data) ? data.data : [];
+			list.innerHTML = '';
+			if(arr.length === 0){
+				list.innerHTML = '<div class="period">No recipes available.</div>';
+				return;
+			}
+			arr.forEach(rec => {
+				const div = document.createElement('div');
+				div.className = 'picker-item';
+				div.style.cssText = 'padding:12px; border-bottom:1px solid #eee; cursor:pointer;';
+				div.innerHTML = `
+					<div style="font-weight:bold;">${rec.name || 'Recipe'}</div>
+					<div style="color:#666; font-size:0.9em;">${rec.category || ''}</div>
+				`;
+				div.addEventListener('click', () => {
+					addMealPlan(rec.recipe_id, targetDate, targetSlot).then(() => {
+						closePicker();
+					}).catch(() => {});
+				});
+				list.appendChild(div);
+			});
+		}catch(e){
+			list.innerHTML = '<div class="period">' + e.message + '</div>';
+		}
+	}
 
 	// ===== Sidebar recipes loading =====
 	async function loadRecipes(){
 		const list = q('.recipe-list'); if(!list) return;
 		list.innerHTML = '<div class="period">Loading...</div>';
 		try{
-			const res = await fetch('WeelyMealPlanner/recipes_api.php?action=list_recipes&limit=50');
+			const res = await fetch('recipes_api.php?action=list_recipes&limit=50');
+			
+			// 检查是否是401未授权错误（虽然recipes_api.php目前不需要登录，但为了统一处理）
+			if(res.status === 401){
+				alert('Please login first');
+				window.location.href = '../LoginAndRegistry/sign_in.html';
+				return;
+			}
+			
 			const data = await res.json(); if(!data.ok) throw new Error(data.data || 'Load failed');
 			const arr = Array.isArray(data.data) ? data.data : [];
 			list.innerHTML = '';
@@ -162,18 +426,38 @@
 			})).filter(x=>x.name)
 		};
 		try{
-			const res = await fetch('WeelyMealPlanner/recipes_api.php?action=update_recipe',{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+			const res = await fetch('recipes_api.php?action=update_recipe',{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
 			const data = await res.json(); if(!data.ok) throw new Error(data.data||'Update failed');
 			closeEditModal(); await loadRecipes();
 		}catch(e){ alert(e.message); }
 	}
 
-	async function deleteRecipe(id){ if(!confirm('Delete this recipe?')) return; try{ const res=await fetch('WeelyMealPlanner/recipes_api.php?action=delete_recipe&recipe_id='+encodeURIComponent(id)); const data=await res.json(); if(!data.ok) throw new Error(data.data||'Delete failed'); await loadRecipes(); } catch(e){ alert(e.message); } }
+	async function deleteRecipe(id){ if(!confirm('Delete this recipe?')) return; try{ const res=await fetch('recipes_api.php?action=delete_recipe&recipe_id='+encodeURIComponent(id)); const data=await res.json(); if(!data.ok) throw new Error(data.data||'Delete failed'); await loadRecipes(); } catch(e){ alert(e.message); } }
 
 	// ===== Picker =====
-	function openPicker(){ const overlay = q('#picker-modal'); if(!overlay) return; const list = q('#picker-list'); list.innerHTML = '<div class="period">Use sidebar to view recipes.</div>'; overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); }
-	function closePicker(){ const overlay=q('#picker-modal'); if(overlay){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); } }
-	function setupPicker(){ const overlay=q('#picker-modal'); const closeBtn=overlay?overlay.querySelector('.mm-close'):null; if(closeBtn){ closeBtn.addEventListener('click', closePicker); } if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closePicker(); }); } document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePicker(); }); qa('.add-link').forEach(el=>{ el.addEventListener('click', openPicker); }); }
+	function openPicker(){ 
+		const overlay = q('#picker-modal'); 
+		if(!overlay) return; 
+		const list = q('#picker-list'); 
+		list.innerHTML = '<div class="period">Use sidebar to view recipes.</div>'; 
+		overlay.classList.add('show'); 
+		overlay.setAttribute('aria-hidden','false'); 
+	}
+	function closePicker(){ 
+		const overlay=q('#picker-modal'); 
+		if(overlay){ 
+			overlay.classList.remove('show'); 
+			overlay.setAttribute('aria-hidden','true'); 
+		} 
+	}
+	function setupPicker(){ 
+		const overlay=q('#picker-modal'); 
+		const closeBtn=overlay?overlay.querySelector('.mm-close'):null; 
+		if(closeBtn){ closeBtn.addEventListener('click', closePicker); } 
+		if(overlay){ overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closePicker(); }); } 
+		document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePicker(); }); 
+		// 注意：add-link的事件监听器现在在updateMealPlansDisplay中动态添加
+	}
 
 	// ===== Create editor (card) =====
 	function setupRecipeEditor(){
@@ -193,7 +477,7 @@
 			const payload = { name: title, category, nutrition, ingredients };
 			submitBtn.disabled = true; submitBtn.textContent = 'Saving...';
 			try{
-				const res = await fetch('WeelyMealPlanner/recipes_api.php?action=create_recipe',{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+				const res = await fetch('recipes_api.php?action=create_recipe',{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
 				const data = await res.json(); if(!data.ok) throw new Error(data.data||'Create failed');
 				clearCreateEditor(); body.setAttribute('hidden',''); q('#re-card').classList.remove('open'); await loadRecipes();
 			}catch(e){ alert(e.message); }
@@ -204,5 +488,14 @@
 	}
 	function clearCreateEditor(){ q('#re-name').value=''; q('#re-category').selectedIndex=1; q('#re-cal').value=''; q('#re-protein').value=''; q('#re-fat').value=''; q('#re-carbs').value=''; const lines=q('#re-ing-lines'); qa('.re-ing-line', lines).forEach((line,idx)=>{ if(idx===0){ line.querySelector('.re-ing-name').value=''; line.querySelector('.re-ing-amount').value=''; } else { line.remove(); } }); }
 
-	document.addEventListener('DOMContentLoaded', async () => { setupWeekSwitching(); setupSearch(); setupModal(); setupRecipeEditor(); setupEditModalControls(); await loadRecipes(); });
+	document.addEventListener('DOMContentLoaded', async () => { 
+		setupWeekSwitching(); 
+		setupSearch(); 
+		setupModal(); 
+		setupRecipeEditor(); 
+		setupEditModalControls(); 
+		setupPicker();
+		await loadRecipes(); 
+		// loadWeekPlans会在updateWeek中调用
+	});
 })();

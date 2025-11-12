@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
-    header('Location: LoginAndRegistry/sign_in.html');
+    header('Location: ../LoginAndRegistry/sign_in.html');
     exit();
 }
 ?>
@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Weekly Meal Planner</title>
-	<link rel="stylesheet" href="WeelyMealPlanner/meal_planner.css">
+	<link rel="stylesheet" href="meal_planner.css">
 </head>
 <body>
 	<div class="main">
@@ -333,6 +333,7 @@ if (!isset($_SESSION['user_id'])) {
 		</div>
 	</div>
 
-	<script src="WeelyMealPlanner/meal_planner.js"></script>
+	<script src="meal_planner.js"></script>
 </body>
 </html>
+

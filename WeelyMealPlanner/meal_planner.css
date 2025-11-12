@@ -103,9 +103,16 @@ body {
 .day-title .dow { font-weight: 700; font-size: 14px; color: var(--text); }
 .day-title .date { font-size: 12px; color: var(--muted); font-weight: 400; }
 
-.cell { padding: 0 12px; text-align: center; }
-.add-link { color: var(--muted); cursor: pointer; user-select: none; font-size: 14px; transition: color .2s; }
+.cell { padding: 8px 12px; text-align: center; min-height: 48px; vertical-align: middle; }
+.add-link { color: var(--muted); cursor: pointer; user-select: none; font-size: 14px; transition: color .2s; display: inline-block; padding: 8px 0; }
 .add-link:hover { color: var(--text); }
+
+/* Meal item styles */
+.meal-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; background: var(--brand-50); border: 1px solid #bbf7d0; border-radius: 8px; cursor: pointer; transition: all .2s; }
+.meal-item:hover { background: #d1fae5; border-color: var(--brand); }
+.meal-name { font-size: 13px; font-weight: 600; color: var(--brand-600); flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meal-remove { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: all .2s; flex-shrink: 0; }
+.meal-remove:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 
 .sidebar { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; max-height: calc(100vh - 140px); position: sticky; top: 16px; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
 .sidebar h3 { margin: 0 0 12px 0; font-size: 18px; font-weight: 700; color: var(--text); }
