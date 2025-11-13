@@ -30,6 +30,16 @@ function respond($ok, $data = null, $http = 200) {
     exit;
 }
 
+function parse_quantity_number($value) {
+    if ($value === null) return 0;
+    if (is_numeric($value)) return (float)$value;
+    if (preg_match('/^\s*([0-9]+(?:\.[0-9]+)?)\s*/u', (string)$value, $m)) {
+        return (float)$m[1];
+    }
+    $filtered = preg_replace('/[^\d\.]/', '', (string)$value);
+    return $filtered === '' ? 0 : (float)$filtered;
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? $_POST['action'] ?? null;
 
@@ -440,6 +450,26 @@ if ($action === 'get_week_plans') {
         $recipes_stmt->close();
     }
     
+    // 获取库存映射
+    $inventory_map = [];
+    $inv_stmt = $conn->prepare("SELECT food_name, food_quantity FROM fooditems WHERE user_id = ? AND food_status = 'active'");
+    $inv_stmt->bind_param('i', $user_id);
+    if ($inv_stmt->execute()) {
+        $inv_res = $inv_stmt->get_result();
+        while ($inv_row = $inv_res->fetch_assoc()) {
+            $key = strtolower(trim($inv_row['food_name']));
+            if ($key === '') continue;
+            if (!isset($inventory_map[$key])) {
+                $inventory_map[$key] = [
+                    'name' => $inv_row['food_name'],
+                    'total_qty' => 0
+                ];
+            }
+            $inventory_map[$key]['total_qty'] += parse_quantity_number($inv_row['food_quantity']);
+        }
+    }
+    $inv_stmt->close();
+    
     // 组合计划和食谱数据
     foreach ($plan_data as $plan) {
         $recipe_ids = [];
@@ -466,7 +496,7 @@ if ($action === 'get_week_plans') {
         } else {
             foreach ($recipe_ids as $recipe_id) {
                 $recipe = $recipes_map[$recipe_id] ?? null;
-                $plans[] = [
+                $plan_entry = [
                     'plan_id' => $plan['plan_id'],
                     'meal_date' => $plan['meal_date'],
                     'meal_slot' => $plan['meal_slot'],
@@ -476,11 +506,317 @@ if ($action === 'get_week_plans') {
                     'nutrition' => $recipe ? $recipe['nutrition'] : null,
                     'ingredients' => $recipe ? $recipe['ingredients'] : null
                 ];
+                
+                if ($recipe && isset($recipe['ingredients']) && is_array($recipe['ingredients'])) {
+                    $ingredients_with_stock = [];
+                    $missing_count = 0;
+                    foreach ($recipe['ingredients'] as $ingredient) {
+                        $name = isset($ingredient['name']) ? $ingredient['name'] : '';
+                        $required = isset($ingredient['amount']) ? $ingredient['amount'] : '';
+                        $name_key = strtolower(trim($name));
+                        
+                        $found = false;
+                        $available_qty = null;
+                        $available_name = null;
+                        
+                        if ($name_key !== '' && isset($inventory_map[$name_key])) {
+                            $found = true;
+                            $available_qty = $inventory_map[$name_key]['total_qty'];
+                            $available_name = $inventory_map[$name_key]['name'];
+                        } else {
+                            foreach ($inventory_map as $inv_key => $inv_data) {
+                                if ($name_key !== '' && (strpos($inv_key, $name_key) !== false || strpos($name_key, $inv_key) !== false)) {
+                                    $found = true;
+                                    $available_qty = $inv_data['total_qty'];
+                                    $available_name = $inv_data['name'];
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        $status = $found ? 'ok' : 'miss';
+                        if (!$found) $missing_count++;
+                        
+                        $ingredients_with_stock[] = [
+                            'name' => $name,
+                            'required' => $required,
+                            'available' => $available_qty,
+                            'available_name' => $available_name,
+                            'status' => $status
+                        ];
+                    }
+                    $plan_entry['ingredients_with_stock'] = $ingredients_with_stock;
+                    $plan_entry['missing_count'] = $missing_count;
+                }
+                
+                $plans[] = $plan_entry;
             }
         }
     }
     
     respond(true, $plans);
+}
+
+// ===== 根据已确认的计划减少库存 =====
+if ($action === 'deduct_inventory_from_plans') {
+    $body = get_json_body();
+    error_log("[deduct_inventory] Received body: " . json_encode($body));
+    
+    $week_start = trim($body['week_start'] ?? '');
+    error_log("[deduct_inventory] Week start (raw): '$week_start'");
+    
+    if (!$week_start) {
+        // 如果没有提供week_start，默认使用本周一
+        $week_start = date('Y-m-d', strtotime('monday this week'));
+        error_log("[deduct_inventory] Using default week_start: '$week_start'");
+    }
+    
+    // 验证日期格式
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $week_start)) {
+        error_log("[deduct_inventory] Invalid date format: '$week_start'");
+        respond(false, 'Invalid date format. Use YYYY-MM-DD. Received: ' . $week_start, 422);
+    }
+    
+    // 计算周日（一周的最后一天）
+    $week_end = date('Y-m-d', strtotime($week_start . ' +6 days'));
+    
+    // 如果提供了 recipe_ids，只处理这些食谱；否则处理当前周的所有计划
+    $filter_recipe_ids = $body['recipe_ids'] ?? null;
+    if ($filter_recipe_ids && is_array($filter_recipe_ids)) {
+        $filter_recipe_ids = array_map('intval', $filter_recipe_ids);
+    } else {
+        $filter_recipe_ids = null;
+    }
+    
+    $conn->begin_transaction();
+    
+    try {
+        $ingredient_requirements = []; // 食材名称 => 需要减少的总量
+        
+        error_log("[deduct_inventory] User: $user_id, Week: $week_start, Recipe IDs: " . json_encode($filter_recipe_ids));
+        
+        if ($filter_recipe_ids && !empty($filter_recipe_ids)) {
+            // 只处理指定的食谱ID（使用参数化查询避免SQL注入）
+            $placeholders = implode(',', array_fill(0, count($filter_recipe_ids), '?'));
+            $recipe_stmt = $conn->prepare("SELECT recipe_id, ingredients FROM recipes WHERE recipe_id IN ($placeholders)");
+            $recipe_stmt->bind_param(str_repeat('i', count($filter_recipe_ids)), ...$filter_recipe_ids);
+            $recipe_stmt->execute();
+            $recipe_result = $recipe_stmt->get_result();
+            
+            while ($recipe_row = $recipe_result->fetch_assoc()) {
+                $recipe_id = $recipe_row['recipe_id'];
+                $ingredients = json_decode($recipe_row['ingredients'], true);
+                if (is_array($ingredients)) {
+                    foreach ($ingredients as $ing) {
+                        $name = strtolower(trim($ing['name'] ?? $ing['ingredient_name'] ?? ''));
+                        if (!$name) continue;
+                        
+                        $amount = trim($ing['amount'] ?? $ing['quantity'] ?? '0');
+                        $required_qty = parse_quantity_number($amount);
+                        
+                        if ($required_qty > 0) {
+                            if (!isset($ingredient_requirements[$name])) {
+                                $ingredient_requirements[$name] = [
+                                    'name' => $ing['name'] ?? $ing['ingredient_name'] ?? $name,
+                                    'total_qty' => 0,
+                                    'unit' => preg_replace('/^\s*[0-9]+(?:\.[0-9]+)?\s*/u', '', $amount)
+                                ];
+                            }
+                            $ingredient_requirements[$name]['total_qty'] += $required_qty;
+                            error_log("[deduct_inventory] Recipe $recipe_id: Ingredient '$name' requires $required_qty");
+                        }
+                    }
+                }
+            }
+            $recipe_stmt->close();
+            error_log("[deduct_inventory] Total ingredients required: " . count($ingredient_requirements));
+        } else {
+            // 处理当前周的所有计划
+            $plans_stmt = $conn->prepare("SELECT plan_id, meal_date, meal_slot, recipe_ids
+                                          FROM meal_plans
+                                          WHERE user_id = ? AND meal_date BETWEEN ? AND ?
+                                          ORDER BY meal_date ASC");
+            $plans_stmt->bind_param('iss', $user_id, $week_start, $week_end);
+            $plans_stmt->execute();
+            $plans_result = $plans_stmt->get_result();
+            
+            // 遍历每个计划，收集所有需要的食材
+            while ($plan_row = $plans_result->fetch_assoc()) {
+                $recipe_ids = json_decode($plan_row['recipe_ids'], true);
+                if (!is_array($recipe_ids) || empty($recipe_ids)) {
+                    continue;
+                }
+                
+                // 获取每个食谱的食材
+                foreach ($recipe_ids as $recipe_id) {
+                    $recipe_stmt = $conn->prepare("SELECT ingredients FROM recipes WHERE recipe_id = ?");
+                    $recipe_stmt->bind_param('i', $recipe_id);
+                    $recipe_stmt->execute();
+                    $recipe_result = $recipe_stmt->get_result();
+                    
+                    if ($recipe_row = $recipe_result->fetch_assoc()) {
+                        $ingredients = json_decode($recipe_row['ingredients'], true);
+                        if (is_array($ingredients)) {
+                            foreach ($ingredients as $ing) {
+                                $name = strtolower(trim($ing['name'] ?? $ing['ingredient_name'] ?? ''));
+                                if (!$name) continue;
+                                
+                                $amount = trim($ing['amount'] ?? $ing['quantity'] ?? '0');
+                                $required_qty = parse_quantity_number($amount);
+                                
+                                if ($required_qty > 0) {
+                                    if (!isset($ingredient_requirements[$name])) {
+                                        $ingredient_requirements[$name] = [
+                                            'name' => $ing['name'] ?? $ing['ingredient_name'] ?? $name,
+                                            'total_qty' => 0,
+                                            'unit' => preg_replace('/^\s*[0-9]+(?:\.[0-9]+)?\s*/u', '', $amount)
+                                        ];
+                                    }
+                                    $ingredient_requirements[$name]['total_qty'] += $required_qty;
+                                }
+                            }
+                        }
+                    }
+                    $recipe_stmt->close();
+                }
+            }
+            $plans_stmt->close();
+        }
+        
+        // 3. 获取用户的所有活跃库存
+        $inventory_stmt = $conn->prepare("SELECT food_id, food_name, food_quantity 
+                                         FROM fooditems 
+                                         WHERE user_id = ? AND food_status = 'active'
+                                         ORDER BY food_id ASC");
+        $inventory_stmt->bind_param('i', $user_id);
+        $inventory_stmt->execute();
+        $inventory_result = $inventory_stmt->get_result();
+        
+        $inventory_map = [];
+        while ($inv_row = $inventory_result->fetch_assoc()) {
+            $key = strtolower(trim($inv_row['food_name']));
+            if (!isset($inventory_map[$key])) {
+                $inventory_map[$key] = [];
+            }
+            $inventory_map[$key][] = [
+                'food_id' => $inv_row['food_id'],
+                'food_name' => $inv_row['food_name'],
+                'food_quantity' => $inv_row['food_quantity']
+            ];
+        }
+        $inventory_stmt->close();
+        error_log("[deduct_inventory] Total inventory items: " . count($inventory_map));
+        
+        // 4. 匹配并减少库存
+        $deducted_items = [];
+        $errors = [];
+        
+        foreach ($ingredient_requirements as $req_key => $req_data) {
+            error_log("[deduct_inventory] Processing requirement: $req_key, needed: {$req_data['total_qty']}");
+            $required_qty = $req_data['total_qty'];
+            $unit = $req_data['unit'];
+            
+            // 查找匹配的库存项
+            $matched_items = null;
+            if (isset($inventory_map[$req_key])) {
+                $matched_items = $inventory_map[$req_key];
+            } else {
+                // 尝试模糊匹配（包含关系）
+                foreach ($inventory_map as $inv_key => $items) {
+                    if (strpos($inv_key, $req_key) !== false || strpos($req_key, $inv_key) !== false) {
+                        $matched_items = $items;
+                        break;
+                    }
+                }
+            }
+            
+            if (!$matched_items || empty($matched_items)) {
+                // 没有找到匹配的库存，记录但不报错
+                error_log("[deduct_inventory] No match found for ingredient: $req_key");
+                continue;
+            }
+            
+            error_log("[deduct_inventory] Found " . count($matched_items) . " matching items for: $req_key");
+            
+            // 按FIFO原则，从最早的项目开始减少
+            $remaining_qty = $required_qty;
+            foreach ($matched_items as $item) {
+                if ($remaining_qty <= 0) break;
+                
+                $current_qty_str = $item['food_quantity'];
+                $current_qty_num = parse_quantity_number($current_qty_str);
+                
+                if ($current_qty_num <= 0) continue;
+                
+                // 提取单位
+                if (preg_match('/^\s*([0-9]+(?:\.[0-9]+)?)\s*(.*)$/u', $current_qty_str, $m)) {
+                    $unit_suffix = trim($m[2]);
+                } else {
+                    $unit_suffix = '';
+                }
+                
+                // 计算需要从这个项目减少的数量
+                $deduct_from_item = min($remaining_qty, $current_qty_num);
+                $new_qty_num = $current_qty_num - $deduct_from_item;
+                $remaining_qty -= $deduct_from_item;
+                
+                // 更新或删除库存项
+                if ($new_qty_num <= 0) {
+                    // 删除库存项
+                    $delete_stmt = $conn->prepare("DELETE FROM fooditems WHERE food_id = ? AND user_id = ?");
+                    $delete_stmt->bind_param('ii', $item['food_id'], $user_id);
+                    if (!$delete_stmt->execute()) {
+                        $errors[] = "Failed to delete food item {$item['food_id']}: " . $delete_stmt->error;
+                    }
+                    $delete_stmt->close();
+                    
+                    $deducted_items[] = [
+                        'food_id' => $item['food_id'],
+                        'food_name' => $item['food_name'],
+                        'deducted' => $current_qty_num,
+                        'remaining' => 0,
+                        'action' => 'deleted'
+                    ];
+                } else {
+                    // 更新库存数量
+                    $new_qty_str = (floor($new_qty_num) == $new_qty_num)
+                        ? (string)intval($new_qty_num)
+                        : rtrim(rtrim(number_format($new_qty_num, 4, '.', ''), '0'), '.');
+                    if ($unit_suffix !== '') {
+                        $new_qty_str .= ' ' . $unit_suffix;
+                    }
+                    
+                    $update_stmt = $conn->prepare("UPDATE fooditems SET food_quantity = ?, updated_at = NOW() WHERE food_id = ? AND user_id = ?");
+                    $update_stmt->bind_param('sii', $new_qty_str, $item['food_id'], $user_id);
+                    if (!$update_stmt->execute()) {
+                        $errors[] = "Failed to update food item {$item['food_id']}: " . $update_stmt->error;
+                    }
+                    $update_stmt->close();
+                    
+                    $deducted_items[] = [
+                        'food_id' => $item['food_id'],
+                        'food_name' => $item['food_name'],
+                        'deducted' => $deduct_from_item,
+                        'remaining' => $new_qty_num,
+                        'action' => 'updated'
+                    ];
+                    error_log("[deduct_inventory] Updated item {$item['food_id']}: {$item['food_name']}, deducted: $deduct_from_item, remaining: $new_qty_num");
+                }
+            }
+        }
+        
+        error_log("[deduct_inventory] Total items deducted: " . count($deducted_items));
+        $conn->commit();
+        respond(true, [
+            'deducted_items' => $deducted_items,
+            'errors' => $errors,
+            'total_items' => count($deducted_items)
+        ]);
+        
+    } catch (Exception $e) {
+        $conn->rollback();
+        respond(false, $e->getMessage(), 500);
+    }
 }
 
 respond(false, 'Unknown action', 400);

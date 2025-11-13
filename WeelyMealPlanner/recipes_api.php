@@ -86,9 +86,109 @@ if ($action === 'list_recipes') {
 	}
 	if (!$stmt->execute()) respond(false, 'Query failed: ' . $stmt->error, 500);
 	$res = $stmt->get_result();
+	
+	// 如果用户已登录，获取用户的库存用于匹配
+	$inventory_map = [];
+	if ($user_id) {
+		$inv_stmt = $conn->prepare("SELECT food_name, food_quantity FROM fooditems WHERE user_id = ? AND food_status = 'active'");
+		$inv_stmt->bind_param('i', $user_id);
+		if ($inv_stmt->execute()) {
+			$inv_res = $inv_stmt->get_result();
+			while ($inv_row = $inv_res->fetch_assoc()) {
+				$name_lower = strtolower(trim($inv_row['food_name']));
+				// 如果同一食材有多个条目，累加数量
+				if (!isset($inventory_map[$name_lower])) {
+					$inventory_map[$name_lower] = ['name' => $inv_row['food_name'], 'quantity' => $inv_row['food_quantity'], 'total_qty' => 0];
+				}
+				// 提取数量数字部分
+				if (preg_match('/^\s*([0-9]+(?:\.[0-9]+)?)\s*(.*)$/u', $inv_row['food_quantity'], $m)) {
+					$inventory_map[$name_lower]['total_qty'] += (float)$m[1];
+				} else {
+					$inventory_map[$name_lower]['total_qty'] += (float)$inv_row['food_quantity'];
+				}
+			}
+		}
+		$inv_stmt->close();
+	}
+	
 	$data = [];
 	while ($row = $res->fetch_assoc()) {
 		foreach (['nutrition','ingredients','food_ids'] as $f) { if ($row[$f] !== null && $row[$f] !== '') { $row[$f] = json_decode($row[$f], true); } }
+		
+		// 检查食材匹配状态
+		$match_status = 'NOT';
+		$matched_count = 0;
+		$total_ingredients = 0;
+		$ingredients_with_stock = [];
+		
+		if (is_array($row['ingredients']) && !empty($row['ingredients'])) {
+			$total_ingredients = count($row['ingredients']);
+			foreach ($row['ingredients'] as $ing) {
+				$ing_name = isset($ing['name']) ? strtolower(trim($ing['name'])) : '';
+				$ing_amount = isset($ing['amount']) ? trim($ing['amount']) : '';
+				
+				// 检查库存中是否有这个食材（不区分大小写）
+				$found = false;
+				$available_qty = null;
+				$available_name = null;
+				
+				foreach ($inventory_map as $inv_key => $inv_data) {
+					if (strtolower(trim($inv_data['name'])) === $ing_name) {
+						$found = true;
+						$available_qty = $inv_data['total_qty'];
+						$available_name = $inv_data['name'];
+						break;
+					}
+				}
+				
+				// 如果没找到精确匹配，尝试部分匹配（包含关系）
+				if (!$found) {
+					foreach ($inventory_map as $inv_key => $inv_data) {
+						if (strpos($inv_key, $ing_name) !== false || strpos($ing_name, $inv_key) !== false) {
+							$found = true;
+							$available_qty = $inv_data['total_qty'];
+							$available_name = $inv_data['name'];
+							break;
+						}
+					}
+				}
+				
+				if ($found) {
+					$matched_count++;
+					$ingredients_with_stock[] = [
+						'name' => isset($ing['name']) ? $ing['name'] : '',
+						'required' => $ing_amount,
+						'available' => $available_qty,
+						'available_name' => $available_name,
+						'status' => 'ok'
+					];
+				} else {
+					$ingredients_with_stock[] = [
+						'name' => isset($ing['name']) ? $ing['name'] : '',
+						'required' => $ing_amount,
+						'available' => null,
+						'available_name' => null,
+						'status' => 'miss'
+					];
+				}
+			}
+			
+			// 计算匹配状态
+			if ($matched_count === $total_ingredients && $total_ingredients > 0) {
+				$match_status = 'FULLY';
+			} elseif ($matched_count > 0) {
+				$match_status = 'PARTIAL';
+			} else {
+				$match_status = 'NOT';
+			}
+		}
+		
+		// 添加匹配信息到返回数据
+		$row['match_status'] = $match_status;
+		$row['matched_count'] = $matched_count;
+		$row['total_ingredients'] = $total_ingredients;
+		$row['ingredients_with_stock'] = $ingredients_with_stock;
+		
 		$data[] = $row;
 	}
 	$stmt->close();

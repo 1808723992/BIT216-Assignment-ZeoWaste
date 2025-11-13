@@ -11,9 +11,110 @@ if (!isset($_SESSION['user_id'])) {
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Weekly Meal Planner</title>
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+	<link rel="stylesheet" href="../Homepage/nav.css" onerror="console.error('Failed to load nav.css from:', this.href);">
 	<link rel="stylesheet" href="meal_planner.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
 </head>
 <body>
+	<script>
+		// 加载导航（适配子目录路径）
+		(function () {
+			const placeholder = document.createElement("div");
+			placeholder.id = "nav-placeholder";
+			document.body.insertBefore(placeholder, document.body.firstChild);
+			
+			fetch("../nav.html")
+				.then(res => {
+					if (!res.ok) throw new Error("无法加载 nav.html");
+					return res.text();
+				})
+				.then(html => {
+					// 修复路径：将相对路径改为从根目录开始的路径
+					html = html.replace(/src="HomePagePicture\//g, 'src="../HomePagePicture/');
+					html = html.replace(/href="([^"]+)"/g, (match, href) => {
+						// 修复链接路径（除了外部链接）
+						if (href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript:')) {
+							return match;
+						}
+						// 如果链接不是以 ../ 开头，添加 ../
+						if (!href.startsWith('../') && !href.startsWith('/')) {
+							return `href="../${href}"`;
+						}
+						return match;
+					});
+					
+					placeholder.innerHTML = html;
+					
+					// 移除任何错误的 nav.css 引用（可能来自其他脚本）
+					document.querySelectorAll('link[href*="nav.css"]').forEach(link => {
+						if (link.href.includes('/Main/nav.css') || link.href.endsWith('/nav.css')) {
+							console.log('Removing incorrect nav.css link:', link.href);
+							link.remove();
+						}
+					});
+					
+					// 确保正确的 nav.css 已加载
+					const correctNavCss = document.querySelector('link[href*="Homepage/nav.css"]');
+					if (!correctNavCss) {
+						const link = document.createElement("link");
+						link.rel = "stylesheet";
+						link.href = "../Homepage/nav.css";
+						link.onerror = () => console.error('❌ Failed to load nav.css from:', link.href, 'Current page:', window.location.pathname);
+						link.onload = () => console.log('✅ nav.css loaded successfully from:', link.href);
+						document.head.appendChild(link);
+					} else {
+						console.log('✅ nav.css already exists in head:', correctNavCss.href);
+					}
+					
+					console.log("✅ ZeoWaste 导航栏加载成功");
+					waitForNavElements();
+				})
+				.catch(err => console.error("❌ 导航加载失败:", err));
+			
+			function waitForNavElements(retry = 0) {
+				const appBtn = document.getElementById("appLauncherBtn");
+				const appDropdown = document.getElementById("appDropdown");
+				const profileBtn = document.getElementById("profileBtn");
+				const profileDropdown = document.getElementById("profileDropdown");
+				
+				if (appBtn && appDropdown) {
+					bindNavEvents(appBtn, appDropdown, profileBtn, profileDropdown);
+					console.log("✅ ZeoWaste App Launcher 事件已绑定完成");
+				} else if (retry < 20) {
+					setTimeout(() => waitForNavElements(retry + 1), 250);
+				} else {
+					console.error("❌ 超过重试次数，App launcher 未找到。");
+				}
+			}
+			
+			function bindNavEvents(appBtn, appDropdown, profileBtn, profileDropdown) {
+				appBtn.addEventListener("click", e => {
+					e.stopPropagation();
+					if (profileDropdown) profileDropdown.style.display = "none";
+					appDropdown.style.display = appDropdown.style.display === "block" ? "none" : "block";
+				});
+				
+				if (profileBtn && profileDropdown) {
+					profileBtn.addEventListener("click", e => {
+						e.stopPropagation();
+						if (appDropdown) appDropdown.style.display = "none";
+						profileDropdown.style.display = profileDropdown.style.display === "block" ? "none" : "block";
+					});
+				}
+				
+				document.addEventListener("click", e => {
+					if (!e.target.closest(".app-launcher") && !e.target.closest(".profile-menu")) {
+						appDropdown.style.display = "none";
+						if (profileDropdown) profileDropdown.style.display = "none";
+					}
+				});
+				
+				appDropdown.addEventListener("click", e => e.stopPropagation());
+				if (profileDropdown) profileDropdown.addEventListener("click", e => e.stopPropagation());
+			}
+		})();
+	</script>
 	<div class="main">
 		<div class="header">
 			<div class="header-left">
@@ -23,7 +124,7 @@ if (!isset($_SESSION['user_id'])) {
 				<span id="prev-week" class="period link dot">Prev</span>
 				<span id="period-text" class="period">2025/10/27 – 2025/11/02</span>
 				<span id="next-week" class="period link dot-right">Next</span>
-				<button class="btn primary">Confirm Weekly Plan</button>
+				<button id="confirm-plan" class="btn primary" disabled>Confirm Weekly Plan</button>
 			</div>
 		</div>
 
@@ -204,10 +305,6 @@ if (!isset($_SESSION['user_id'])) {
 			</div>
 		</div>
 
-		<div class="shopping">
-			<h3>Shopping List</h3>
-			<div class="period">No missing items. Confirm plan to generate.</div>
-		</div>
 	</div>
 
 	<!-- Details Modal -->
@@ -282,6 +379,28 @@ if (!isset($_SESSION['user_id'])) {
 		</div>
 	</div>
 
+	<!-- Missing Ingredients Modal -->
+	<div id="missing-ingredients-modal" class="mm-overlay" aria-hidden="true">
+		<div class="mm-dialog" role="dialog" aria-modal="true" style="width: min(650px, 96%);">
+			<button class="mm-close" aria-label="Close" id="missing-ingredients-close">×</button>
+			<div class="mm-header">
+				<h2 id="missing-recipe-name">Cannot Add Recipe</h2>
+				<div class="warning-badge">
+					Insufficient ingredients in inventory
+				</div>
+			</div>
+			<div class="mm-section">
+				<h3>Missing Ingredients</h3>
+				<div id="missing-ingredients-list">
+					<!-- Missing ingredients will be inserted here -->
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn primary" id="missing-ingredients-ok">Got it</button>
+			</div>
+		</div>
+	</div>
+
 	<!-- Edit Recipe Modal -->
 	<div id="edit-modal" class="mm-overlay" aria-hidden="true">
 		<div class="mm-dialog" role="dialog" aria-modal="true">
@@ -334,6 +453,15 @@ if (!isset($_SESSION['user_id'])) {
 	</div>
 
 	<script src="meal_planner.js"></script>
+	
+	<footer style="margin-top: 40px; padding: 20px; text-align: center; background: #f7f8fb; border-top: 1px solid #e5e7eb;">
+		<p style="margin: 0 0 10px 0; color: #6b7280;">&copy; 2025 ZeoWaste. All Rights Reserved.</p>
+		<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+			<a href="#" style="color: #22c55e; text-decoration: none; font-size: 14px;">About Us</a>
+			<a href="#" style="color: #22c55e; text-decoration: none; font-size: 14px;">Contact</a>
+			<a href="#" style="color: #22c55e; text-decoration: none; font-size: 14px;">Privacy Policy</a>
+		</div>
+	</footer>
 </body>
 </html>
 

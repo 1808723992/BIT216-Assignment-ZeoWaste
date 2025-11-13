@@ -1,19 +1,17 @@
-<?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header('Location: LoginAndRegistry/sign_in.html');
-    exit();
-}
-?>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Weekly Meal Planner</title>
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 	<link rel="stylesheet" href="WeelyMealPlanner/meal_planner.css">
+	<link rel="stylesheet" href="BrowseFoodItem/BrowseFoodItem.css" />
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
 </head>
 <body>
+	<script src="Homepage/load_nav.js"></script>
+
 	<div class="main">
 		<div class="header">
 			<div class="header-left">
@@ -204,10 +202,6 @@ if (!isset($_SESSION['user_id'])) {
 			</div>
 		</div>
 
-		<div class="shopping">
-			<h3>Shopping List</h3>
-			<div class="period">No missing items. Confirm plan to generate.</div>
-		</div>
 	</div>
 
 	<!-- Details Modal -->
@@ -282,6 +276,28 @@ if (!isset($_SESSION['user_id'])) {
 		</div>
 	</div>
 
+	<!-- Missing Ingredients Modal -->
+	<div id="missing-ingredients-modal" class="mm-overlay" aria-hidden="true">
+		<div class="mm-dialog" role="dialog" aria-modal="true" style="width: min(650px, 96%);">
+			<button class="mm-close" aria-label="Close" id="missing-ingredients-close">×</button>
+			<div class="mm-header">
+				<h2 id="missing-recipe-name">Cannot Add Recipe</h2>
+				<div class="warning-badge">
+					Insufficient ingredients in inventory
+				</div>
+			</div>
+			<div class="mm-section">
+				<h3>Missing Ingredients</h3>
+				<div id="missing-ingredients-list">
+					<!-- Missing ingredients will be inserted here -->
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn primary" id="missing-ingredients-ok">Got it</button>
+			</div>
+		</div>
+	</div>
+
 	<!-- Edit Recipe Modal -->
 	<div id="edit-modal" class="mm-overlay" aria-hidden="true">
 		<div class="mm-dialog" role="dialog" aria-modal="true">
@@ -334,5 +350,13 @@ if (!isset($_SESSION['user_id'])) {
 	</div>
 
 	<script src="WeelyMealPlanner/meal_planner.js"></script>
+
+	<div id="footer-placeholder"></div>
+  	<script>
+   	 fetch("BrowseFoodItem/footer.html")
+ 	     .then(res => res.text())
+	      .then(data => (document.getElementById("footer-placeholder").innerHTML = data))
+	      .catch(err => console.error("页脚加载失败:", err));
+	</script>
 </body>
 </html>
