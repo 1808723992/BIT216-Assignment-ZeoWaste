@@ -7,7 +7,9 @@
   document.body.insertBefore(placeholder, document.body.firstChild);
 
   // 自动加载 nav.html
-  fetch("nav.html")
+  const NAV_CACHE_BUSTER = "v=20251113";
+
+  fetch(`nav.html?${NAV_CACHE_BUSTER}`)
     .then(res => {
       if (!res.ok) throw new Error("无法加载 nav.html");
       return res.text();
