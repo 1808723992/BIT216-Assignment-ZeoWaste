@@ -4,11 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Track My Impact</title>
+    <link rel="stylesheet" href="Homepage/nav.css" />
     <link rel="stylesheet" href="data_analytics/data_analytics.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body>
+    <script src="Homepage/load_nav.js"></script>
     <header class="page-header">
         <h1>Food Analytics</h1>
         <p class="subtitle">Monitor your food usage and waste reduction progress</p>
@@ -177,6 +179,13 @@
     </section>
 
     <script src="data_analytics/data_analytics.js"></script>
+    <div id="footer-placeholder"></div>
+    <script>
+     fetch("Homepage/footer.html")
+          .then(res => res.text())
+          .then(data => (document.getElementById("footer-placeholder").innerHTML = data))
+          .catch(err => console.error("页脚加载失败:", err));
+    </script>
 </body>
 </html>
 

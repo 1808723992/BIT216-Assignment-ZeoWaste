@@ -10,6 +10,28 @@
   }
   
   const api = 'data_analytics/data_analytics.php';
+  const getUserApi = 'data_analytics/get_user_id.php';
+
+  // 获取用户ID的函数
+  let currentUserId = null;
+  async function fetchUserId() {
+    if (currentUserId !== null) return currentUserId;
+    try {
+      const res = await fetch(getUserApi);
+      const data = await res.json();
+      if (data.user_id) {
+        currentUserId = data.user_id;
+        return currentUserId;
+      } else {
+        console.error('User not logged in');
+        window.location.href = 'sign_in.html';
+        return null;
+      }
+    } catch (e) {
+      console.error('Failed to get user ID:', e);
+      return null;
+    }
+  }
 
   const el = (id)=>document.getElementById(id);
   const presetRange = el('presetRange');
@@ -119,7 +141,12 @@
   async function loadAll(){
     const from = fromDate.value;
     const to = toDate.value;
-    const userId = 9; // TODO: replace with session-fed value
+    // 获取用户ID
+    const userId = await fetchUserId();
+    if (!userId) {
+      console.error('User ID not available. Please log in.');
+      return;
+    }
     
     const summary = await getJSON(`${api}?action=summary&source=db&user_id=${userId}&from=${from}&to=${to}`) || {summary: {used:0,donated:0,discarded:0,inventory:0}};
     const timeseries = await getJSON(`${api}?action=timeseries&source=db&user_id=${userId}&from=${from}&to=${to}`) || {labels: [], series: {used:[], donated:[], discarded:[]}};
@@ -306,7 +333,14 @@
   // init default: last 30 days
   setPreset(30);
   toggleCustom();
-  loadAll();
+  
+  // 页面加载时先获取用户ID，然后加载数据
+  (async function init() {
+    const userId = await fetchUserId();
+    if (userId) {
+      loadAll();
+    }
+  })();
 })();
 
 

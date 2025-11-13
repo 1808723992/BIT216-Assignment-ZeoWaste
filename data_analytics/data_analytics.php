@@ -52,9 +52,17 @@ function withinRange($ts, $fromTs, $toTs) {
     return true;
 }
 
+// 启动 session 以获取用户ID
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? $_POST['action'] ?? null;
 $source = $_GET['source'] ?? $_POST['source'] ?? 'json';
+
+// 从 session 获取用户ID（如果使用数据库源）
+$sessionUserId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 
 if ($action === null) {
     echo json_encode(["error" => "Missing action"], JSON_PRETTY_PRINT);
@@ -138,7 +146,13 @@ try {
     if ($action === 'summary') {
         if ($source === 'db') {
             require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'connect.php'; // provides $conn (mysqli)
-            $userId = (int)($_GET['user_id'] ?? 0);
+            // 优先从 session 获取用户ID，如果没有则从 GET 参数获取（向后兼容）
+            $userId = $sessionUserId ?? (int)($_GET['user_id'] ?? 0);
+            if ($userId <= 0) {
+                http_response_code(401);
+                echo json_encode(["error" => "User ID required. Please log in."], JSON_PRETTY_PRINT);
+                exit;
+            }
             $from = $_GET['from'] ?? null;
             $to = $_GET['to'] ?? null;
             $fromDate = $from ? $from : null;
@@ -211,7 +225,13 @@ try {
     if ($action === 'timeseries') {
         if ($source === 'db') {
             require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'connect.php';
-            $userId = (int)($_GET['user_id'] ?? 0);
+            // 优先从 session 获取用户ID，如果没有则从 GET 参数获取（向后兼容）
+            $userId = $sessionUserId ?? (int)($_GET['user_id'] ?? 0);
+            if ($userId <= 0) {
+                http_response_code(401);
+                echo json_encode(["error" => "User ID required. Please log in."], JSON_PRETTY_PRINT);
+                exit;
+            }
             $from = $_GET['from'] ?? null;
             $to = $_GET['to'] ?? null;
             if (!$from || !$to) { http_response_code(400); echo json_encode(["error"=>"from/to required"], JSON_PRETTY_PRINT); exit; }
@@ -280,7 +300,13 @@ try {
     if ($action === 'category_breakdown') {
         if ($source === 'db') {
             require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'connect.php';
-            $userId = (int)($_GET['user_id'] ?? 0);
+            // 优先从 session 获取用户ID，如果没有则从 GET 参数获取（向后兼容）
+            $userId = $sessionUserId ?? (int)($_GET['user_id'] ?? 0);
+            if ($userId <= 0) {
+                http_response_code(401);
+                echo json_encode(["error" => "User ID required. Please log in."], JSON_PRETTY_PRINT);
+                exit;
+            }
             $from = $_GET['from'] ?? null; $to = $_GET['to'] ?? null;
             $cats = [];
             // Build categories from enum we know
