@@ -88,7 +88,7 @@ $user_email = $_SESSION['email'] ?? '';
         <img src="HomePagePicture/pngtree-dashboard-line-icon-png-image_9020881.png" alt="Dashboard" class="feature-img">
         <h3>Analytics</h3>
         <p>View your activity overview, stats, and notifications all in one place.</p>
-        <a href="analytics.html" class="btn-primary">View Analytics</a>
+        <a href="planweeklymeals.html" class="btn-primary">View Analytics</a>
       </div>
 
       <div class="feature-card">
