@@ -150,6 +150,7 @@ if ($action === 'add_meal_plan') {
         
         // 提交事务
         $conn->commit();
+        syncMealPlanNotification($conn, $user_id, $meal_date, $meal_slot);
         respond(true, ['plan_id' => $plan_id]);
         
     } catch (Exception $e) {
@@ -216,6 +217,7 @@ if ($action === 'remove_meal_plan') {
     $plan_id = isset($body['plan_id']) ? (int)$body['plan_id'] : 0;
     $meal_date = trim($body['meal_date'] ?? '');
     $meal_slot = trim($body['meal_slot'] ?? '');
+    $targetForNotification = null;
     
     $conn->begin_transaction();
     
@@ -223,7 +225,7 @@ if ($action === 'remove_meal_plan') {
         // 找到要删除的计划ID
         if ($plan_id) {
             // 验证计划属于当前用户
-            $check = $conn->prepare("SELECT plan_id FROM meal_plans WHERE plan_id = ? AND user_id = ?");
+            $check = $conn->prepare("SELECT plan_id, meal_date, meal_slot FROM meal_plans WHERE plan_id = ? AND user_id = ?");
             $check->bind_param('ii', $plan_id, $user_id);
             $check->execute();
             $check_result = $check->get_result();
@@ -231,6 +233,11 @@ if ($action === 'remove_meal_plan') {
                 $check->close();
                 throw new Exception('Meal plan not found or access denied');
             }
+            $plan_row = $check_result->fetch_assoc();
+            $targetForNotification = [
+                'meal_date' => $plan_row['meal_date'],
+                'meal_slot' => $plan_row['meal_slot']
+            ];
             $check->close();
         } else if ($meal_date && $meal_slot) {
             // 通过日期和餐时段查找计划
@@ -245,6 +252,10 @@ if ($action === 'remove_meal_plan') {
             $plan_row = $find_result->fetch_assoc();
             $plan_id = $plan_row['plan_id'];
             $find->close();
+            $targetForNotification = [
+                'meal_date' => $meal_date,
+                'meal_slot' => $meal_slot
+            ];
         } else {
             throw new Exception('Either plan_id or (meal_date and meal_slot) is required');
         }
@@ -259,6 +270,9 @@ if ($action === 'remove_meal_plan') {
         $delete->close();
         
         $conn->commit();
+        if ($targetForNotification) {
+            deleteMealPlanNotification($conn, $user_id, $targetForNotification['meal_date'], $targetForNotification['meal_slot']);
+        }
         respond(true, ['deleted' => $affected]);
         
     } catch (Exception $e) {
@@ -278,6 +292,7 @@ if ($action === 'batch_add_meal_plans') {
     
     $allowed_slots = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
     $conn->begin_transaction();
+    $notificationTargets = [];
     
     try {
         foreach ($plans as $plan) {
@@ -363,9 +378,17 @@ if ($action === 'batch_add_meal_plans') {
                 $plan_id = $insert->insert_id;
                 $insert->close();
             }
+
+            $notificationTargets[$meal_date . '|' . $meal_slot] = [
+                'meal_date' => $meal_date,
+                'meal_slot' => $meal_slot
+            ];
         }
         
         $conn->commit();
+        foreach ($notificationTargets as $target) {
+            syncMealPlanNotification($conn, $user_id, $target['meal_date'], $target['meal_slot']);
+        }
         respond(true, ['added' => count($plans)]);
     } catch (Exception $e) {
         $conn->rollback();
@@ -817,6 +840,178 @@ if ($action === 'deduct_inventory_from_plans') {
         $conn->rollback();
         respond(false, $e->getMessage(), 500);
     }
+}
+
+function syncMealPlanNotification(mysqli $conn, int $userId, string $mealDate, string $mealSlot): void
+{
+    if ($mealDate === '' || $mealSlot === '') {
+        return;
+    }
+
+    $planStmt = $conn->prepare("SELECT plan_id, recipe_ids FROM meal_plans WHERE user_id = ? AND meal_date = ? AND meal_slot = ? LIMIT 1");
+    if (!$planStmt) {
+        return;
+    }
+
+    $planStmt->bind_param('iss', $userId, $mealDate, $mealSlot);
+    if (!$planStmt->execute()) {
+        $planStmt->close();
+        return;
+    }
+
+    $planResult = $planStmt->get_result();
+    $plan = $planResult ? $planResult->fetch_assoc() : null;
+    $planStmt->close();
+
+    if (!$plan) {
+        deleteMealPlanNotification($conn, $userId, $mealDate, $mealSlot);
+        return;
+    }
+
+    $planId = (int) $plan['plan_id'];
+    $recipeIds = [];
+
+    if (!empty($plan['recipe_ids'])) {
+        $decoded = json_decode($plan['recipe_ids'], true);
+        if (is_array($decoded)) {
+            foreach ($decoded as $rid) {
+                $rid = (int) $rid;
+                if ($rid > 0) {
+                    $recipeIds[] = $rid;
+                }
+            }
+        }
+    }
+
+    $recipeIds = array_values(array_unique($recipeIds));
+    $recipes = [];
+
+    if (!empty($recipeIds)) {
+        $placeholders = implode(',', array_fill(0, count($recipeIds), '?'));
+        $types = str_repeat('i', count($recipeIds));
+        $recipeStmt = $conn->prepare("SELECT recipe_id, name, ingredients FROM recipes WHERE recipe_id IN ($placeholders)");
+        if ($recipeStmt) {
+            $recipeStmt->bind_param($types, ...$recipeIds);
+            if ($recipeStmt->execute()) {
+                $recipeResult = $recipeStmt->get_result();
+                while ($row = $recipeResult->fetch_assoc()) {
+                    $recipes[(int) $row['recipe_id']] = $row;
+                }
+            }
+            $recipeStmt->close();
+        }
+    }
+
+    $recipeSummaries = [];
+    $ingredientTags = [];
+
+    foreach ($recipeIds as $rid) {
+        $recipe = $recipes[$rid] ?? null;
+        $name = $recipe['name'] ?? ('Recipe #' . $rid);
+        $ingredientsList = [];
+
+        if ($recipe && $recipe['ingredients']) {
+            $decodedIng = json_decode($recipe['ingredients'], true);
+            if (is_array($decodedIng)) {
+                foreach ($decodedIng as $ing) {
+                    if (!is_array($ing)) {
+                        continue;
+                    }
+                    $ingName = trim((string) ($ing['name'] ?? $ing['ingredient_name'] ?? ''));
+                    $amount = trim((string) ($ing['amount'] ?? $ing['quantity'] ?? ''));
+                    $label = $ingName;
+                    if ($amount !== '') {
+                        $label = $label === '' ? $amount : "{$ingName} ({$amount})";
+                    }
+                    if ($label !== '') {
+                        $ingredientsList[] = $label;
+                        $ingredientTags[] = $label;
+                    }
+                }
+            }
+        }
+
+        $recipeSummaries[] = [
+            'recipeId' => $rid,
+            'name' => $name,
+            'ingredients' => $ingredientsList,
+        ];
+    }
+
+    $ingredientTags = array_values(array_unique($ingredientTags));
+    $mealName = $recipeSummaries ? implode(', ', array_column($recipeSummaries, 'name')) : 'No recipe selected';
+    $message = $recipeSummaries
+        ? sprintf('%s plan includes: %s', $mealSlot, $mealName)
+        : sprintf('%s slot has been scheduled.', $mealSlot);
+
+    $payload = [
+        'planId' => $planId,
+        'mealDate' => $mealDate,
+        'mealSlot' => $mealSlot,
+        'meals' => [[
+            'type' => $mealSlot,
+            'name' => $mealName,
+            'ingredients' => $ingredientTags,
+        ]],
+        'recipes' => $recipeSummaries,
+    ];
+
+    $subtitle = formatMealPlanSubtitle($mealSlot, $mealDate);
+    $payloadJson = json_encode($payload, JSON_UNESCAPED_UNICODE);
+
+    $existingId = null;
+    $existingStmt = $conn->prepare("SELECT notification_id FROM notifications WHERE user_id = ? AND type = 'meal-plans' AND subtitle = ? AND status != 'deleted' ORDER BY created_at DESC LIMIT 1");
+    if ($existingStmt) {
+        $existingStmt->bind_param('is', $userId, $subtitle);
+        if ($existingStmt->execute()) {
+            $existingResult = $existingStmt->get_result();
+            if ($existingResult && ($row = $existingResult->fetch_assoc())) {
+                $existingId = (int) $row['notification_id'];
+            }
+        }
+        $existingStmt->close();
+    }
+
+    $title = $recipeSummaries ? 'Meal Plan Updated' : 'Meal Plan Scheduled';
+
+    if ($existingId) {
+        $update = $conn->prepare("UPDATE notifications SET title = ?, subtitle = ?, message = ?, payload = ?, status = 'unread', updated_at = NOW() WHERE notification_id = ?");
+        if ($update) {
+            $update->bind_param('ssssi', $title, $subtitle, $message, $payloadJson, $existingId);
+            $update->execute();
+            $update->close();
+        }
+    } else {
+        $insert = $conn->prepare("INSERT INTO notifications (user_id, type, status, title, subtitle, message, payload) VALUES (?, ?, 'unread', ?, ?, ?, ?)");
+        if ($insert) {
+            $type = 'meal-plans';
+            $insert->bind_param('isssss', $userId, $type, $title, $subtitle, $message, $payloadJson);
+            $insert->execute();
+            $insert->close();
+        }
+    }
+}
+
+function deleteMealPlanNotification(mysqli $conn, int $userId, string $mealDate, string $mealSlot): void
+{
+    if ($mealDate === '' || $mealSlot === '') {
+        return;
+    }
+
+    $subtitle = formatMealPlanSubtitle($mealSlot, $mealDate);
+    $stmt = $conn->prepare("UPDATE notifications SET status = 'deleted', updated_at = NOW() WHERE user_id = ? AND type = 'meal-plans' AND subtitle = ?");
+    if ($stmt) {
+        $stmt->bind_param('is', $userId, $subtitle);
+        $stmt->execute();
+        $stmt->close();
+    }
+}
+
+function formatMealPlanSubtitle(string $mealSlot, string $mealDate): string
+{
+    $slot = trim($mealSlot) !== '' ? trim($mealSlot) : 'Meal Plan';
+    $date = trim($mealDate);
+    return sprintf('%s - %s', $slot, $date);
 }
 
 respond(false, 'Unknown action', 400);

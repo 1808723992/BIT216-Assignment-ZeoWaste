@@ -652,7 +652,7 @@ async function loadInventory(){
 						console.log('[confirmWeeklyPlan] Deducted items details:', deductResponse.data?.deducted_items);
 						
 						if(deductResponse.data?.deducted_items?.length > 0){
-							alert(`已减少 ${deductResponse.data.deducted_items.length} 个库存项的食材数量`);
+							alert(`Reduced ingredient quantities for ${deductResponse.data.deducted_items.length} inventory items.`);
 						} else {
 							console.warn('[confirmWeeklyPlan] ⚠️ No items were deducted. Check if ingredients match inventory.');
 						}
