@@ -1,4 +1,7 @@
+// 获取API路径
+// HTML文件在根目录，JS文件在ViewNotifications目录，所以API路径固定为：
 const API_BASE = 'ViewNotifications/backend/notifications_api.php';
+const MEAL_PLAN_REMINDER_KEY = 'zwMealPlanReminderDate';
 
 let notifications = [];
 let currentFilter = 'all';
@@ -16,6 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeDate();
   setupEventListeners();
   refreshData();
+  requestNotificationPermission();
+  maybeTriggerMealPlanReminderForToday();
+  scheduleDailyMealPlanReminder();
 });
 
 function initializeDate() {
@@ -78,6 +84,85 @@ function setupEventListeners() {
   updateActionButtons();
 }
 
+function requestNotificationPermission() {
+  if (typeof window === 'undefined' || !('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().catch(() => {});
+  }
+}
+
+function scheduleDailyMealPlanReminder() {
+  if (typeof window === 'undefined') return;
+
+  const now = new Date();
+  const nextReminder = new Date();
+  nextReminder.setHours(9, 0, 0, 0);
+
+  if (now >= nextReminder) {
+    nextReminder.setDate(nextReminder.getDate() + 1);
+  }
+
+  const delay = nextReminder.getTime() - now.getTime();
+  window.setTimeout(() => {
+    triggerDailyMealPlanReminder();
+    scheduleDailyMealPlanReminder();
+  }, delay);
+}
+
+function maybeTriggerMealPlanReminderForToday() {
+  const now = new Date();
+  if (now.getHours() >= 9 && !hasMealPlanReminderBeenSentToday()) {
+    triggerDailyMealPlanReminder();
+  }
+}
+
+function triggerDailyMealPlanReminder() {
+  if (hasMealPlanReminderBeenSentToday()) return;
+
+  const title = '今日膳食計劃提醒';
+  const body = '請記得查看今天的膳食計劃，確認所需食材與安排。';
+
+  showMealPlanReminderNotification(title, body);
+  markMealPlanReminderSentToday();
+}
+
+function showMealPlanReminderNotification(title, body) {
+  if (typeof window === 'undefined') return;
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification(title, { body });
+      return;
+    } catch (error) {
+      console.warn('Unable to show browser notification', error);
+    }
+  }
+
+  alert(`${title}\n\n${body}`);
+}
+
+function hasMealPlanReminderBeenSentToday() {
+  try {
+    const storedDate = localStorage.getItem(MEAL_PLAN_REMINDER_KEY);
+    return storedDate === getTodayString();
+  } catch (error) {
+    return false;
+  }
+}
+
+function markMealPlanReminderSentToday() {
+  try {
+    localStorage.setItem(MEAL_PLAN_REMINDER_KEY, getTodayString());
+  } catch (error) {
+    // Ignore storage errors (e.g., private mode)
+  }
+}
+
+function getTodayString() {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+}
+
 async function setActiveFilter(filter) {
   currentFilter = filter;
   document.querySelectorAll('.nav-item').forEach(item => {
@@ -121,10 +206,18 @@ async function loadNotifications(filter) {
   const url = `${API_BASE}?filter=${encodeURIComponent(filter)}`;
   try {
     const data = await fetchJson(url);
+    console.log('[loadNotifications] Raw data received:', data);
+    console.log('[loadNotifications] Data.data:', data.data);
     notifications = (data.data || []).map(transformNotification);
+    console.log('[loadNotifications] Transformed notifications:', notifications);
   } catch (error) {
-    console.error('Failed to load notifications', error);
+    console.error(`Failed to load notifications for filter "${filter}":`, error);
+    console.error('URL:', url);
     notifications = [];
+    // Show user-friendly error message for debugging
+    if (error.message.includes('Unauthenticated') || error.message.includes('401')) {
+      console.error('Authentication error - please log in again');
+    }
   }
 }
 
@@ -764,12 +857,22 @@ function formatExpiredSubtext(expiryDate) {
 async function fetchJson(url) {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    const errorData = await safeJson(response);
+    const errorMessage = errorData?.error || errorData?.message || `Request failed: ${response.status}`;
+    throw new Error(errorMessage);
   }
   const data = await safeJson(response);
   if (data === null) {
+    // Try to get response text for debugging (clone first since response may be consumed)
+    try {
+      const text = await response.clone().text();
+      console.error('[fetchJson] Invalid JSON response. Response text:', text);
+    } catch (e) {
+      console.error('[fetchJson] Invalid JSON response and could not read text');
+    }
     throw new Error('Invalid JSON response');
   }
+  console.log('[fetchJson] Successfully fetched data:', data);
   return data;
 }
 

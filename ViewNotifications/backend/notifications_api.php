@@ -2,6 +2,9 @@
 // ViewNotifications/backend/notifications_api.php
 // REST-style endpoint for fetching and mutating notification records.
 
+// Prevent any output before JSON
+ob_start();
+
 session_start();
 
 header('Content-Type: application/json; charset=utf-8');
@@ -10,7 +13,8 @@ require_once __DIR__ . '/../../connect.php'; // Adjust this path to your actual 
 
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
-    echo json_encode(['error' => 'Unauthenticated']);
+    ob_clean();
+    echo json_encode(['error' => 'Unauthenticated'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -25,17 +29,26 @@ try {
         handlePost($conn, $userId, $action);
     } else {
         http_response_code(405);
-        echo json_encode(['error' => 'Method not allowed']);
+        ob_clean();
+        echo json_encode(['error' => 'Method not allowed'], JSON_UNESCAPED_UNICODE);
     }
 } catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Server error', 'message' => $e->getMessage()]);
+    ob_clean();
+    echo json_encode(['error' => 'Server error', 'message' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
 }
+
+// End output buffering
+ob_end_flush();
 
 function handleGet(mysqli $conn, int $userId, ?string $action): void
 {
+    // Clear any output buffer
+    ob_clean();
+    
     if ($action === 'counts') {
-        echo json_encode(fetchCounts($conn, $userId));
+        $counts = fetchCounts($conn, $userId);
+        echo json_encode($counts, JSON_UNESCAPED_UNICODE);
         return;
     }
 
@@ -44,62 +57,66 @@ function handleGet(mysqli $conn, int $userId, ?string $action): void
     $pageSize = max(1, min(100, (int) ($_GET['pageSize'] ?? 20)));
 
     $notifications = fetchNotifications($conn, $userId, $filter, $page, $pageSize);
-    echo json_encode([
+    $response = [
         'data' => $notifications,
         'meta' => [
             'filter' => $filter,
             'page' => $page,
             'pageSize' => $pageSize,
         ],
-    ]);
+    ];
+    echo json_encode($response, JSON_UNESCAPED_UNICODE);
 }
 
 function handlePost(mysqli $conn, int $userId, ?string $action): void
 {
+    // Clear any output buffer
+    ob_clean();
+    
     if ($action === null) {
         http_response_code(400);
-        echo json_encode(['error' => 'Missing action parameter']);
+        echo json_encode(['error' => 'Missing action parameter'], JSON_UNESCAPED_UNICODE);
         return;
     }
 
     $payload = json_decode(file_get_contents('php://input'), true);
     if (!is_array($payload)) {
         http_response_code(400);
-        echo json_encode(['error' => 'Invalid JSON payload']);
+        echo json_encode(['error' => 'Invalid JSON payload'], JSON_UNESCAPED_UNICODE);
         return;
     }
 
     $ids = array_map('intval', $payload['ids'] ?? []);
     if (empty($ids)) {
         http_response_code(400);
-        echo json_encode(['error' => 'No notification ids were provided']);
+        echo json_encode(['error' => 'No notification ids were provided'], JSON_UNESCAPED_UNICODE);
         return;
     }
 
     switch ($action) {
         case 'mark-read':
             bulkUpdateStatus($conn, $userId, $ids, 'read');
-            echo json_encode(['status' => 'ok']);
+            echo json_encode(['status' => 'ok'], JSON_UNESCAPED_UNICODE);
             break;
         case 'archive':
             bulkUpdateStatus($conn, $userId, $ids, 'archived');
-            echo json_encode(['status' => 'ok']);
+            echo json_encode(['status' => 'ok'], JSON_UNESCAPED_UNICODE);
             break;
         case 'trash':
             moveToTrash($conn, $userId, $ids);
-            echo json_encode(['status' => 'ok']);
+            echo json_encode(['status' => 'ok'], JSON_UNESCAPED_UNICODE);
             break;
         case 'restore':
             restoreFromTrash($conn, $userId, $ids);
-            echo json_encode(['status' => 'ok']);
+            echo json_encode(['status' => 'ok'], JSON_UNESCAPED_UNICODE);
             break;
         case 'delete':
             permanentlyDelete($conn, $userId, $ids);
-            echo json_encode(['status' => 'ok']);
+            echo json_encode(['status' => 'ok'], JSON_UNESCAPED_UNICODE);
             break;
         default:
             http_response_code(400);
-            echo json_encode(['error' => 'Unsupported action']);
+            echo json_encode(['error' => 'Unsupported action'], JSON_UNESCAPED_UNICODE);
     }
 }
 
@@ -143,14 +160,22 @@ function fetchNotifications(mysqli $conn, int $userId, string $filter, int $page
             LIMIT ?, ?";
 
     $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        throw new Exception('Failed to prepare statement: ' . $conn->error);
+    }
 
     $types .= 'ii';
     $params[] = $offset;
     $params[] = $pageSize;
 
     $stmt->bind_param($types, ...$params);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        throw new Exception('Failed to execute statement: ' . $stmt->error);
+    }
     $result = $stmt->get_result();
+    if (!$result) {
+        throw new Exception('Failed to get result: ' . $stmt->error);
+    }
 
     return array_map(static function (array $row) {
         $row['payload'] = $row['payload'] ? json_decode($row['payload'], true) : null;
@@ -202,6 +227,9 @@ function fetchCounts(mysqli $conn, int $userId): array
                     break;
                 case 'meal-plans':
                     $counts['mealPlans'] += $total;
+                    break;
+                case 'new-food':
+                    // new-food notifications are included in 'all' count
                     break;
             }
         } elseif ($status === 'archived') {
