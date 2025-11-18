@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Notifications - ZeoWaste</title>
+  <link rel="stylesheet" href="ViewNotifications/View_Notifications_GUO.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Left Sidebar Navigation -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        </div>
+        <h1>Notifications</h1>
+        <p class="sidebar-subtitle">Notification Center</p>
+      </div>
+      
+      <button class="mark-read-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M20 6L9 17l-5-5"></path>
+        </svg>
+        Mark All as Read
+      </button>
+
+      <nav class="nav-categories">
+        <ul>
+          <li class="nav-item active" data-filter="all">
+            <div class="nav-item-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span>All Notifications</span>
+            </div>
+            <span class="badge badge-green">10</span>
+          </li>
+          <li class="nav-item" data-filter="unread">
+            <div class="nav-item-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <span>Unread</span>
+            </div>
+            <span class="badge badge-grey">4</span>
+          </li>
+          <li class="nav-item" data-filter="expired">
+            <div class="nav-item-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <span>Expired</span>
+            </div>
+            <span class="badge badge-grey">2</span>
+          </li>
+          <li class="nav-item" data-filter="expiring-soon">
+            <div class="nav-item-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Expiring Soon</span>
+            </div>
+            <span class="badge badge-grey">2</span>
+          </li>
+          <li class="nav-item" data-filter="meal-plans">
+            <div class="nav-item-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 2v20"></path>
+                <path d="M6 2l1.5 1.5 1.5-1.5"></path>
+                <path d="M6 6l1.5 1.5 1.5-1.5"></path>
+                <path d="M6 10l1.5 1.5 1.5-1.5"></path>
+                <path d="M18 2v20"></path>
+                <path d="M18 2l-1.5 1.5-1.5-1.5"></path>
+                <path d="M18 6l-1.5 1.5-1.5-1.5"></path>
+                <line x1="6" y1="12" x2="18" y2="12"></line>
+              </svg>
+              <span>Meal Plans</span>
+            </div>
+            <span class="badge badge-grey">1</span>
+          </li>
+          <li class="nav-item" data-filter="donations">
+            <div class="nav-item-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+              <span>Donations</span>
+            </div>
+            <span class="badge badge-grey">3</span>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="nav-divider"></div>
+
+      <nav class="nav-management">
+        <ul>
+          <li class="nav-item" data-filter="archived">
+            <div class="nav-item-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                <rect x="1" y="3" width="22" height="5"></rect>
+                <line x1="10" y1="12" x2="14" y2="12"></line>
+              </svg>
+              <span>Archived</span>
+            </div>
+          </li>
+          <li class="nav-item" data-filter="trash">
+            <div class="nav-item-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Trash</span>
+            </div>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Today: <span id="current-date">11/5/2025</span></p>
+      </div>
+    </div>
+
+    <!-- Middle Notification Center -->
+    <div class="notification-center">
+      <div class="notification-center-header">
+        <div>
+          <h2>Notification Center</h2>
+          <p class="notification-count"><span id="notification-count">10</span> notifications</p>
+        </div>
+        <div class="header-actions">
+          <label class="select-all-label">
+            <input type="checkbox" id="select-all" class="select-all-checkbox">
+            <span>Select All</span>
+          </label>
+          <div class="action-buttons" id="action-buttons" style="display: none;">
+            <!-- Normal view buttons -->
+            <div id="normal-action-buttons" style="display: none;">
+              <button class="action-btn archive-btn" onclick="archiveSelectedNotifications()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                  <rect x="1" y="3" width="22" height="5"></rect>
+                  <line x1="10" y1="12" x2="14" y2="12"></line>
+                </svg>
+                Archive
+              </button>
+              <button class="action-btn trash-btn" onclick="moveSelectedToTrash()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Trash
+              </button>
+            </div>
+            
+            <!-- Archive view buttons -->
+            <div id="archive-action-buttons" style="display: none;">
+              <button class="action-btn restore-btn" onclick="unarchiveSelectedNotifications()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                  <path d="M21 3v5h-5"></path>
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                  <path d="M3 21v-5h5"></path>
+                </svg>
+                Unarchive
+              </button>
+              <button class="action-btn trash-btn" onclick="moveArchiveToTrash()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Delete
+              </button>
+            </div>
+            
+            <!-- Trash view buttons -->
+            <div id="trash-action-buttons" style="display: none;">
+              <button class="action-btn restore-btn" onclick="restoreSelectedNotifications()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                  <path d="M21 3v5h-5"></path>
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                  <path d="M3 21v-5h5"></path>
+                </svg>
+                Restore
+              </button>
+              <button class="action-btn delete-btn" onclick="permanentlyDeleteSelectedNotifications()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+                Permanently Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="trash-hint" class="trash-hint" style="display: none;">
+        Items in Trash are automatically deleted after 30 days.
+      </div>
+
+      <div class="notification-list" id="notification-list">
+        <!-- Empty state will be inserted here when no notifications -->
+        
+        <!-- Food Expired Notification -->
+        <div class="notification-item" data-type="expired" data-id="1" data-read="false">
+          <input type="checkbox" class="notification-checkbox">
+          <div class="notification-icon expired-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <div class="notification-content">
+            <div class="notification-header-row">
+              <h3 class="notification-title">Food Expired</h3>
+              <span class="notification-tag tag-expired">Expired</span>
+            </div>
+            <p class="notification-subtitle">Whole Milk</p>
+            <p class="notification-description">Your milk has expired, please handle it immediately</p>
+            <div class="notification-meta">
+              <span class="notification-date">Expires: 2025-11-01</span>
+              <span class="notification-time">9h ago</span>
+            </div>
+            <div class="notification-status-dot"></div>
+          </div>
+        </div>
+
+        <!-- Food Expiring Soon Notification -->
+        <div class="notification-item" data-type="expiring-soon" data-id="2" data-read="false">
+          <input type="checkbox" class="notification-checkbox">
+          <div class="notification-icon expiring-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff8800" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="notification-content">
+            <div class="notification-header-row">
+              <h3 class="notification-title">Food Expiring Soon</h3>
+              <span class="notification-tag tag-expiring">Expiring Soon</span>
+            </div>
+            <p class="notification-subtitle">Fresh Eggs (12 pack)</p>
+            <p class="notification-description">Your eggs will expire in 2 days</p>
+            <div class="notification-meta">
+              <span class="notification-date">Expires: 2025-11-07</span>
+              <span class="notification-time">9h ago</span>
+            </div>
+            <div class="notification-status-dot"></div>
+          </div>
+        </div>
+
+        <!-- Meal Plan Notification -->
+        <div class="notification-item" data-type="meal-plans" data-id="3" data-read="false">
+          <input type="checkbox" class="notification-checkbox">
+          <div class="notification-icon mealplan-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2">
+              <path d="M6 2v20"></path>
+              <path d="M6 2l1.5 1.5 1.5-1.5"></path>
+              <path d="M6 6l1.5 1.5 1.5-1.5"></path>
+              <path d="M6 10l1.5 1.5 1.5-1.5"></path>
+              <path d="M18 2v20"></path>
+              <path d="M18 2l-1.5 1.5-1.5-1.5"></path>
+              <path d="M18 6l-1.5 1.5-1.5-1.5"></path>
+              <line x1="6" y1="12" x2="18" y2="12"></line>
+            </svg>
+          </div>
+          <div class="notification-content">
+            <div class="notification-header-row">
+              <h3 class="notification-title">Tomorrow's Meal Plan Reminder</h3>
+              <span class="notification-tag tag-mealplan">Meal Plan</span>
+            </div>
+            <p class="notification-subtitle">Full Day Meal Plan</p>
+            <p class="notification-description">Tomorrow's meal plan is ready, including breakfast, lunch, dinner, and midnight snack</p>
+            <div class="notification-meta">
+              <span class="notification-date">Meal Date: 2025-11-06</span>
+              <span class="notification-time">4h ago</span>
+            </div>
+            <div class="notification-status-dot"></div>
+          </div>
+        </div>
+
+        <!-- Donation Published Notification -->
+        <div class="notification-item" data-type="donations" data-id="4" data-read="false">
+          <input type="checkbox" class="notification-checkbox">
+          <div class="notification-icon donation-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </div>
+          <div class="notification-content">
+            <div class="notification-header-row">
+              <h3 class="notification-title">Donation Published Successfully</h3>
+              <span class="notification-tag tag-donation">Donation</span>
+            </div>
+            <p class="notification-subtitle">Organic Apples</p>
+            <p class="notification-description">Your food donation has been published, waiting for confirmation</p>
+            <div class="notification-meta">
+              <span class="notification-date">Expires: 2025-11-10</span>
+              <span class="notification-time">7h ago</span>
+            </div>
+            <div class="notification-status-dot"></div>
+          </div>
+        </div>
+
+        <!-- Donation Confirmed Notification -->
+        <div class="notification-item" data-type="donations" data-id="5" data-read="false">
+          <input type="checkbox" class="notification-checkbox">
+          <div class="notification-icon donation-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </div>
+          <div class="notification-content">
+            <div class="notification-header-row">
+              <h3 class="notification-title">Donation Confirmed</h3>
+              <span class="notification-tag tag-donation">Donation</span>
+            </div>
+            <p class="notification-subtitle">Whole Wheat Bread</p>
+            <p class="notification-description">Your donation has been confirmed, thank you for your kindness</p>
+            <div class="notification-meta">
+              <span class="notification-date">Expires: 2025-11-08</span>
+              <span class="notification-time">4d ago</span>
+            </div>
+            <div class="notification-status-dot"></div>
+          </div>
+        </div>
+
+        <!-- More notifications can be added here -->
+      </div>
+    </div>
+
+    <!-- Right Notification Details Panel -->
+    <div class="notification-details-panel" id="notification-details">
+      <h2 class="details-panel-title">Notification Details</h2>
+      
+      <div class="details-placeholder">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#d0d0d0" stroke-width="1">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <p>Select a notification to view details</p>
+      </div>
+
+      <!-- Food Expired Details Template -->
+      <div class="details-content" id="details-expired" style="display: none;">
+        <div class="details-alert">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <h2 class="details-alert-title">Food Expired</h2>
+          <p class="details-alert-time" id="details-expired-time">11/5/2025, 8:00:00 AM</p>
+        </div>
+
+        <div class="food-info-card">
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="2">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+              <circle cx="7" cy="7" r="1"></circle>
+            </svg>
+            <div>
+              <span class="info-label">Food Name</span>
+              <span class="info-value" id="details-expired-name">Whole Milk</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <div>
+              <span class="info-label">Expiry Date</span>
+              <span class="info-value expired-date" id="details-expired-date">2025-11-01</span>
+              <span class="info-subtext" id="details-expired-subtext">Expired 4 days ago</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <div>
+              <span class="info-label">Storage Location</span>
+              <span class="info-value" id="details-expired-location">Refrigerator - 2nd Shelf</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detailed-info-section">
+          <h3>Detailed Information</h3>
+          <p class="detailed-info-text" id="details-expired-message">Your milk has expired, please handle it immediately</p>
+          <a href="Manage Food Inventory_GUO.html" class="view-details-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            View Food Details
+          </a>
+        </div>
+
+        <div class="suggested-actions-card">
+          <div class="suggested-actions-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffa500" stroke-width="2">
+              <line x1="12" y1="2" x2="12" y2="22"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <h3>Suggested Actions</h3>
+          </div>
+          <ul class="suggested-actions-list">
+            <li>Immediately check food condition, discard if spoiled or smells bad</li>
+            <li>Remove this food from inventory</li>
+            <li>Clean the storage area</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Donation Details Template -->
+      <div class="details-content" id="details-donation" style="display: none;">
+        <div class="details-alert donation-alert">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          <h2 class="details-alert-title donation-title" id="details-donation-title">Donation Published Successfully</h2>
+          <p class="details-alert-time" id="details-donation-time">11/5/2025, 8:00:00 AM</p>
+        </div>
+
+        <div class="donation-details-card">
+          <h3 style="color: #ff69b4; font-size: 16px; font-weight: 700; margin: 0 0 16px 0;">Donation Details</h3>
+          
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <div>
+              <span class="info-label">Donated Food</span>
+              <span class="info-value" id="details-donation-name">Organic Apples</span>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="donation-sub-card">
+              <div class="info-item" style="gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <div>
+                  <span class="info-label" style="font-size: 12px;">Expiry Date</span>
+                  <span class="info-value" id="details-donation-date" style="font-size: 14px;">2025-11-10</span>
+                  <span class="info-subtext" id="details-donation-expiry-subtext" style="font-size: 11px;">Expires in 2 days</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="donation-sub-card">
+              <div class="info-item" style="gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                <div>
+                  <span class="info-label" style="font-size: 12px;">Donation Status</span>
+                  <span class="info-value" id="details-donation-status" style="font-size: 14px;">Pending</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="donation-sub-card" style="grid-column: 1 / -1;">
+            <div class="info-item" style="gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              <div>
+                <span class="info-label" style="font-size: 12px;">Donation Location</span>
+                <span class="info-value" id="details-donation-location" style="font-size: 14px;">Community Food Bank - 123 Zhongshan Road</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="donation-sub-card" style="grid-column: 1 / -1;">
+            <div class="info-item" style="gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <div>
+                <span class="info-label" style="font-size: 12px;">Donation Time</span>
+                <span class="info-value" id="details-donation-donation-time" style="font-size: 14px;">2025-11-06 14:00-16:00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detailed-info-section">
+          <h3>Donation Details</h3>
+          <p class="detailed-info-text" id="details-donation-message">Your food donation has been published, waiting for confirmation</p>
+          <a href="Manage%20Food%20Inventory_GUO.html" class="view-details-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            View Donation Details
+          </a>
+        </div>
+
+        <div class="suggested-actions-card">
+          <div class="suggested-actions-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffa500" stroke-width="2">
+              <line x1="12" y1="2" x2="12" y2="22"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <h3>Suggested Actions</h3>
+          </div>
+          <ul class="suggested-actions-list" id="details-donation-actions">
+            <li>Ensure food packaging is intact and suitable for donation</li>
+            <li>Deliver to the specified location on time</li>
+            <li>Bring relevant documents (if required)</li>
+            <li>Thank you for your generous donation</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Food Expiring Soon Details Template -->
+      <div class="details-content" id="details-expiring-soon" style="display: none;">
+        <div class="details-alert expiring-alert">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff8800" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <h2 class="details-alert-title expiring-title">Food Expiring Soon</h2>
+          <p class="details-alert-time" id="details-expiring-time">11/5/2025, 7:30:00 AM</p>
+        </div>
+
+        <div class="food-info-card">
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff8800" stroke-width="2">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+              <circle cx="7" cy="7" r="1"></circle>
+            </svg>
+            <div>
+              <span class="info-label">Food Name</span>
+              <span class="info-value" id="details-expiring-name">Fresh Eggs (12 pack)</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff8800" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <div>
+              <span class="info-label">Expiry Date</span>
+              <span class="info-value expiring-date" id="details-expiring-date">2025-11-07</span>
+              <span class="info-subtext" id="details-expiring-subtext">Expires in 2 days</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <div>
+              <span class="info-label">Storage Location</span>
+              <span class="info-value" id="details-expiring-location">Refrigerator - 1st Shelf</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detailed-info-section">
+          <h3>Detailed Information</h3>
+          <p class="detailed-info-text" id="details-expiring-message">Your eggs will expire in 2 days</p>
+          <a href="Manage%20Food%20Inventory_GUO.html" class="view-details-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            View Food Details
+          </a>
+        </div>
+
+        <div class="suggested-actions-card">
+          <div class="suggested-actions-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffa500" stroke-width="2">
+              <line x1="12" y1="2" x2="12" y2="22"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <h3>Suggested Actions</h3>
+          </div>
+          <ul class="suggested-actions-list">
+            <li>Consume or use this food as soon as possible</li>
+            <li>Consider sharing with others</li>
+            <li>If unable to consume in time, consider freezing for preservation</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Meal Plan Details Template -->
+      <div class="details-content" id="details-mealplan" style="display: none;">
+        <div class="details-alert mealplan-alert">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2">
+            <path d="M6 2v20"></path>
+            <path d="M6 2l1.5 1.5 1.5-1.5"></path>
+            <path d="M6 6l1.5 1.5 1.5-1.5"></path>
+            <path d="M6 10l1.5 1.5 1.5-1.5"></path>
+            <path d="M18 2v20"></path>
+            <path d="M18 2l-1.5 1.5-1.5-1.5"></path>
+            <path d="M18 6l-1.5 1.5-1.5-1.5"></path>
+            <line x1="6" y1="12" x2="18" y2="12"></line>
+          </svg>
+          <h2 class="details-alert-title mealplan-title">Tomorrow's Meal Plan Reminder</h2>
+          <p class="details-alert-time" id="details-mealplan-time">11/5/2025, 9:00:00 PM</p>
+        </div>
+
+        <div class="mealplan-info-card">
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <div>
+              <span class="info-label">Meal Date</span>
+              <span class="info-value" id="details-mealplan-date">2025-11-06</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mealplan-details-section">
+          <h3>Meal Plan Details</h3>
+          <div id="mealplan-meals-list">
+            <!-- Meals will be dynamically inserted here -->
+          </div>
+        </div>
+
+        <div class="detailed-info-section">
+          <h3>Detailed Information</h3>
+          <p class="detailed-info-text" id="details-mealplan-message">Tomorrow's meal plan is ready, including breakfast, lunch, dinner, and midnight snack. Please check the required ingredients</p>
+          <a href="#" class="view-details-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            View Meal Plan
+          </a>
+        </div>
+
+        <div class="suggested-actions-card">
+          <div class="suggested-actions-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffa500" stroke-width="2">
+              <line x1="12" y1="2" x2="12" y2="22"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <h3>Suggested Actions</h3>
+          </div>
+          <ul class="suggested-actions-list">
+            <li>Check if required ingredients are sufficient</li>
+            <li>Prepare ingredients that need thawing in advance</li>
+            <li>Confirm cooking time and steps</li>
+            <li>Update the plan promptly if adjustments are needed</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- New Food Added Details Template -->
+      <div class="details-content" id="details-new-food" style="display: none;">
+        <div class="details-alert newfood-alert">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <h2 class="details-alert-title newfood-title">New Food Added</h2>
+          <p class="details-alert-time" id="details-newfood-time">11/3/2025, 3:30:00 PM</p>
+        </div>
+
+        <div class="food-info-card">
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+              <circle cx="7" cy="7" r="1"></circle>
+            </svg>
+            <div>
+              <span class="info-label">Food Name</span>
+              <span class="info-value" id="details-newfood-name">Organic Apples</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <div>
+              <span class="info-label">Expiry Date</span>
+              <span class="info-value" id="details-newfood-date">2025-11-15</span>
+              <span class="info-subtext" id="details-newfood-subtext">Expires in 7 days</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <div>
+              <span class="info-label">Storage Location</span>
+              <span class="info-value" id="details-newfood-location">Refrigerator - Crisper Drawer</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detailed-info-section">
+          <h3>Detailed Information</h3>
+          <p class="detailed-info-text" id="details-newfood-message">Successfully added new food to inventory</p>
+          <a href="Manage Food Inventory_GUO.html" class="view-details-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            View Details
+          </a>
+        </div>
+
+        <div class="suggested-actions-card">
+          <div class="suggested-actions-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffa500" stroke-width="2">
+              <line x1="12" y1="2" x2="12" y2="22"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <h3>Suggested Actions</h3>
+          </div>
+          <ul class="suggested-actions-list">
+            <li>Review detailed information</li>
+            <li>Take appropriate action based on the situation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="ViewNotifications/View_Notifications_GUO.js"></script>
+</body>
+</html>
